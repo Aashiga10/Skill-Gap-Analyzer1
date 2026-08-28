@@ -97,6 +97,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import nodemailer from "nodemailer";
 import db from "./database/firebaseAdmin.js";
 import uploadResume from "./routes/uploadResume.js";
 
@@ -157,8 +158,8 @@ app.post("/api/chat", async (req, res) => {
     const reply = data.choices && data.choices[0] ? data.choices[0].message.content : "No response";
     res.json({ response: reply });
   } catch (error) {
-    console.error("Ollama Chat Error:", error);
-    res.status(500).json({ error: "Voice assistant failed. Is Ollama running locally?" });
+    console.error("NVIDIA Chat Error:", error);
+    res.status(500).json({ error: "Voice assistant failed to process prompt." });
   }
 });
 
@@ -232,6 +233,38 @@ app.post("/api/stt", uploadAudio.single('audio'), async (req, res) => {
   } catch (error) {
     console.error("STT Error:", error);
     res.status(500).json({ error: "Failed to transcribe audio." });
+  }
+});
+
+// Send Course Completion Email Route
+app.post("/api/send-completion-email", async (req, res) => {
+  try {
+    const { email, userName, courseName } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required" });
+
+    // Use a dummy transport if real credentials are not provided
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || "smtp.ethereal.email",
+      port: process.env.SMTP_PORT || 587,
+      auth: {
+        user: process.env.SMTP_USER || "dummy_user",
+        pass: process.env.SMTP_PASS || "dummy_pass",
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from: '"SkillNexus AI" <noreply@skillnexus.ai>',
+      to: email,
+      subject: "Course Completed! 🎉",
+      text: `Hello ${userName},\n\nCongratulations on completing the course: "${courseName}".\n\nYour progress has been updated on your SkillNexus AI dashboard.\n\nKeep up the great work!`,
+      html: `<h3>Hello ${userName},</h3><p>Congratulations on completing the course: <strong>"${courseName}"</strong>.</p><p>Your progress has been updated on your SkillNexus AI dashboard.</p><p>Keep up the great work!</p>`,
+    });
+
+    console.log("Completion email sent: %s", info.messageId);
+    res.json({ success: true, messageId: info.messageId });
+  } catch (error) {
+    console.error("Email Sending Error:", error);
+    res.status(500).json({ error: "Failed to send email." });
   }
 });
 

@@ -4,7 +4,8 @@ import {
   where,
   getDocs,
   doc,
-  updateDoc
+  updateDoc,
+  setDoc
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 import { fsdb, auth } from "./firebaseConfig.js";
 
@@ -840,6 +841,9 @@ const V={
   loginFlow:{active:false,step:'idle',email:''},
   dreamFlow:{active:false,raw:'',pending:null},
   interest:{active:false,stage:'idle',matches:[],introShown:false},
+  registrationFlow: { active: false, step: 'idle', name: '', email: '', attempts: 0 },
+  analysisFlow: { active: false, step: 'idle', skill: '', currentSkills: '', time: '' },
+  courseFlow: { active: false, currentCourseIndex: 0 },
   analyseHintShown:false
 };
 try{
@@ -856,10 +860,22 @@ function speak(text){
   try{
     V.lastSpoken=text;
     speechSynthesis.cancel();
+    
+    // Stop listening temporarily so mic doesn't catch the feedback
+    const wasListening = V.listening;
+    if (wasListening) stopListening();
+
     const u=new SpeechSynthesisUtterance(text);
     u.rate=V.rate;u.pitch=1;
     const vs=speechSynthesis.getVoices().filter(v=>/en[-_]/i.test(v.lang));
     if(vs.length)u.voice=vs[0];
+    
+    u.onend = () => {
+      if (wasListening && !V.listening) {
+        startListening();
+      }
+    };
+    
     speechSynthesis.speak(u);
   }catch(e){console.error('speak error:',e);}
 }
@@ -916,39 +932,73 @@ function updateMicUI(){
 }
 function startListening(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){setVoiceStatus('Voice recognition is not supported in this browser.');announce('Voice recognition is not supported in this browser. Please use Chrome or Edge.');return;}
-  let r;
-  try{r=new SR();}catch(e){setVoiceStatus('Could not start microphone.');return;}
-  r.lang='en-US';r.interimResults=false;r.continuous=true;r.maxAlternatives=1;
-  V.listening=true;V.recognition=r;
+  if(!SR){
+    setVoiceStatus('Voice recognition is not supported in this browser.');
+    announce('Voice recognition is not supported in this browser.');
+    return;
+  }
+  
+  // Prevent InvalidStateError if already started
+  if (V.listening && V.recognition) return;
+
+  if (!V.recognition) {
+    try{
+      V.recognition=new SR();
+      V.recognition.lang='en-US';
+      V.recognition.interimResults=false;
+      V.recognition.continuous=true;
+      V.recognition.maxAlternatives=1;
+      
+      V.recognition.onresult=(ev)=>{
+        let t='';
+        for(let i=ev.resultIndex;i<ev.results.length;i++){
+          if(ev.results[i].isFinal) t+=ev.results[i][0].transcript;
+        }
+        if(t.trim()) handleVoiceCommand(t.trim());
+      };
+      
+      V.recognition.onerror=(ev)=>{
+        if(ev.error==='not-allowed'||ev.error==='service-not-allowed'){
+          setVoiceStatus('Microphone access denied. Please allow microphone permission.');
+          announce('Microphone access was denied. Please check browser permissions.');
+          stopListening();
+        }else if(ev.error==='no-speech'){
+          setVoiceStatus('No speech detected. Try again.');
+        }else if(ev.error==='network'){
+          setVoiceStatus('Speech recognition network error.');
+        }else{
+          setVoiceStatus('Voice recognition error: '+ev.error);
+        }
+      };
+      
+      V.recognition.onend=()=>{
+        if(V.listening){
+          try{ V.recognition.start(); }
+          catch(e){ V.listening=false; updateMicUI(); }
+        }
+      };
+    }catch(e){
+      setVoiceStatus('Could not initialize microphone.');
+      return;
+    }
+  }
+
+  V.listening=true;
   openPanel();
   updateMicUI();
-  r.onresult=(ev)=>{
-    let t='';
-    for(let i=ev.resultIndex;i<ev.results.length;i++){if(ev.results[i].isFinal)t+=ev.results[i][0].transcript;}
-    if(t.trim())handleVoiceCommand(t.trim());
-  };
-  r.onerror=(ev)=>{
-    if(ev.error==='not-allowed'||ev.error==='service-not-allowed'){
-      setVoiceStatus('Microphone access denied. Please allow microphone permission.');
-      announce('Microphone access was denied. Please check browser permissions.');
-      stopListening();
-    }else if(ev.error==='no-speech'){
-      setVoiceStatus('No speech detected. Try again.');
-    }else if(ev.error==='network'){
-      setVoiceStatus('Speech recognition network error.');
-    }else{
-      setVoiceStatus('Voice recognition error: '+ev.error);
+  try{
+    V.recognition.start();
+  }catch(e){
+    if(e.name !== 'InvalidStateError') {
+      V.listening=false;
+      updateMicUI();
+      setVoiceStatus('Could not start microphone.');
     }
-  };
-  r.onend=()=>{
-    if(V.listening){try{r.start();}catch(e){V.listening=false;updateMicUI();}}
-  };
-  try{r.start();}catch(e){V.listening=false;updateMicUI();setVoiceStatus('Could not start microphone.');}
+  }
 }
 function stopListening(){
   V.listening=false;
-  if(V.recognition){try{V.recognition.stop();}catch(e){}V.recognition=null;}
+  if(V.recognition){try{V.recognition.stop();}catch(e){}}
   updateMicUI();
   setVoiceStatus('Listening stopped.');
 }
@@ -1273,22 +1323,40 @@ function startJobDiscovery(){
 // ── AUTO VOICE ON OPEN ────────────────────────────
 function initAutoVoice(){
   if(!speechSupported())return;
-  setTimeout(()=>{
-    if(!V.enabled)return;
-    const loginScreen = document.getElementById('screen-login');
-    const isOnLogin = loginScreen && loginScreen.classList.contains('active');
+  
+  // Wait for user interaction to satisfy autoplay policies
+  // A blind user will typically press Tab, Enter, or arrow keys to navigate.
+  const handleInteraction = () => {
+    document.removeEventListener('click', handleInteraction);
+    document.removeEventListener('keydown', handleInteraction);
+    document.removeEventListener('touchstart', handleInteraction);
     
-    openPanel();
-    startListening();
-    
-    if (isOnLogin) {
-      if (!V.loginFlow.active) {
-        startLoginFlow();
+    if(!V.enabled) return;
+    setTimeout(() => {
+      const loginScreen = document.getElementById('screen-login');
+      const isOnLogin = loginScreen && loginScreen.classList.contains('active');
+      
+      openPanel();
+      startListening();
+      
+      if (isOnLogin) {
+        if (!V.loginFlow.active) startLoginFlow();
+      } else {
+        speak('Welcome to SkillNexus AI. Please say: Hi, I am, followed by your name, to log in.');
       }
-    } else {
-      speak('Welcome to SkillSync AI. Say go to login page to sign in.');
-    }
-  }, 500);
+    }, 300);
+  };
+  
+  // Attempt optimistic speak (browsers may block this without interaction)
+  try {
+    const u = new SpeechSynthesisUtterance('');
+    u.volume = 0; // silent check
+    speechSynthesis.speak(u);
+  } catch (e) {}
+
+  document.addEventListener('click', handleInteraction);
+  document.addEventListener('keydown', handleInteraction);
+  document.addEventListener('touchstart', handleInteraction);
 }
 
 // ── VOICE READ-ALOUD ──────────────────────────────
@@ -1364,6 +1432,27 @@ function handleVoiceCommand(t){
     handleLoginVoiceCommand(t,c);
     return;
   }
+  if(V.registrationFlow.active){handleVoiceRegistration(t,c);return;}
+  if(V.analysisFlow.active){handleVoiceAnalysis(t,c);return;}
+  if(V.courseFlow.active){handleVoiceCourse(t,c);return;}
+  
+  if(c.startsWith("hi i am") || c.startsWith("hi i'm")) {
+    const spokenName = c.replace(/hi i am\s+|hi i'm\s+/, "").trim();
+    if(spokenName) handleVoiceIdentification(spokenName);
+    else speak("Please repeat, saying: Hi I am, followed by your name.");
+    return;
+  }
+  if(c.includes("analyze my skills") || c.includes("analyse my skills")) {
+    startVoiceAnalysis();
+    return;
+  }
+  
+  if(c.includes("show my roadmap") || c.includes("open course") || c.includes("mark as completed")) {
+    V.courseFlow.active = true;
+    handleVoiceCourse(t, c);
+    return;
+  }
+  
   if(V.interest.active){handleInterestCommand(t,c);return;}
   if(V.dreamFlow.active){handleDreamCommand(t,c);return;}
   if(isDreamJobPhrase(c)){
@@ -1404,9 +1493,9 @@ function handleVoiceCommand(t){
   if(c.includes('theme')||c.includes('dark mode')||c.includes('light mode')){toggleTheme();return;}
   if(voiceNav(c))return;
   
-  // Fallback to Ollama backend
+  // Fallback to Backend LLM
   setVoiceStatus('Thinking...');
-  fetch('http://localhost:5000/api/chat', {
+  fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt: t })
@@ -1420,7 +1509,7 @@ function handleVoiceCommand(t){
     }
   })
   .catch(err => {
-    console.error('Ollama error:', err);
+    console.error('LLM error:', err);
     announce('Sorry, I did not understand that. Say help for a list of commands.');
   });
 }
@@ -1582,3 +1671,183 @@ window.goBack = goBack;
 window.startJobDiscovery = startJobDiscovery;
 window.toggleVoiceFeedback = toggleVoiceFeedback;
 window.setVoiceRate = setVoiceRate;
+
+// ── END-TO-END VOICE FLOW LOGIC ───────────────────
+
+async function handleVoiceIdentification(spokenName) {
+  try {
+    const q = query(collection(fsdb, "users"));
+    const snap = await getDocs(q);
+    let found = null;
+    snap.forEach(d => {
+      const u = d.data();
+      if(u.name && u.name.toLowerCase() === spokenName.toLowerCase()) {
+        found = u;
+      }
+    });
+    
+    if(found) {
+      S.user = { name: found.name, email: found.email };
+      document.getElementById('nav-uname').textContent = found.name;
+      speak(`You are now logged in, ${found.name}. Welcome to your dashboard.`);
+      go('app');
+      goTo('analyse');
+    } else {
+      V.registrationFlow.name = spokenName;
+      V.registrationFlow.active = true;
+      V.registrationFlow.step = 'ask';
+      speak(`I don't have an account for ${spokenName} yet. Would you like to register? Say yes to continue, or say cancel.`);
+    }
+  } catch(e) {
+    console.error(e);
+    speak("Sorry, there was an error checking your account.");
+  }
+}
+
+async function handleVoiceRegistration(t, c) {
+  const step = V.registrationFlow.step;
+  if(c.includes("cancel") || c.includes("no")) {
+    V.registrationFlow.active = false;
+    speak("Registration cancelled.");
+    return;
+  }
+  
+  if(step === 'ask') {
+    if(c.includes("yes") || c.includes("sure") || c.includes("ok")) {
+      V.registrationFlow.step = 'email';
+      speak("Please spell your email address, letter by letter, and say 'at' for @ and 'dot' for the period.");
+    } else {
+      speak("Say yes to register, or cancel to stop.");
+    }
+  } else if(step === 'email') {
+    const email = parseSpokenEmail(t);
+    V.registrationFlow.email = email;
+    V.registrationFlow.step = 'confirm';
+    speak(`I heard ${email}. Say yes to confirm, or say retry to spell it again.`);
+  } else if(step === 'confirm') {
+    if(c.includes("retry") || c.includes("no") || c.includes("change")) {
+      V.registrationFlow.attempts++;
+      if(V.registrationFlow.attempts >= 2) {
+        V.registrationFlow.active = false;
+        speak("Let's switch to typing instead.");
+        go('signup');
+      } else {
+        V.registrationFlow.step = 'email';
+        speak("Please spell your email address again.");
+      }
+    } else if(c.includes("yes") || c.includes("confirm")) {
+      try {
+        const email = V.registrationFlow.email;
+        const name = V.registrationFlow.name;
+        const ref = doc(collection(fsdb, "users"));
+        await setDoc(ref, {
+          name: name,
+          email: email,
+          method: 'Voice Registration',
+          joined: new Date().toLocaleDateString()
+        });
+        
+        S.user = { name: name, email: email };
+        document.getElementById('nav-uname').textContent = name;
+        V.registrationFlow.active = false;
+        speak(`You're registered, ${name}. Logging you in now.`);
+        go('app');
+        goTo('analyse');
+      } catch(e) {
+        speak("Sorry, I could not create the account due to an error.");
+      }
+    }
+  }
+}
+
+function startVoiceAnalysis() {
+  V.analysisFlow.active = true;
+  V.analysisFlow.step = 'skill';
+  speak("Which skill would you like to analyze?");
+}
+
+function handleVoiceAnalysis(t, c) {
+  const step = V.analysisFlow.step;
+  if(c.includes("cancel")) {
+    V.analysisFlow.active = false;
+    speak("Analysis cancelled.");
+    return;
+  }
+  
+  if(step === 'skill') {
+    const job = JOB_LIST.find(j => c.includes(j.toLowerCase()));
+    S.dreamJob = job || t;
+    document.getElementById('dream-job').value = S.dreamJob;
+    V.analysisFlow.step = 'currentSkills';
+    speak(`What skills do you already have in ${S.dreamJob}?`);
+  } else if(step === 'currentSkills') {
+    S.skills = t.split(/,|and/i).map(s => s.trim()).filter(s => s);
+    renderTags();
+    V.analysisFlow.step = 'time';
+    speak("How much time can you commit — for example, hours per week?");
+  } else if(step === 'time') {
+    const time = parseSpokenNumber(c);
+    S.hoursPerWeek = time || 10;
+    document.getElementById('hours-week').value = S.hoursPerWeek;
+    V.analysisFlow.active = false;
+    speak("Analyzing your skill gap now, please wait.");
+    analyzeSkills();
+    
+    const interval = setInterval(() => {
+      if(S.resultsReady) {
+        clearInterval(interval);
+        speak(`Analysis complete. Match score ${S.matchScore} percent. Say 'show my roadmap' to continue.`);
+      }
+    }, 1000);
+  }
+}
+
+function handleVoiceCourse(t, c) {
+  if(c.includes("show my roadmap") || c.includes("read roadmap")) {
+    goTo('roadmap');
+    readRoadmapAloud();
+    speak("To open a course, say: open course, followed by the course name.");
+    return;
+  }
+  
+  if(c.includes("open course")) {
+    const courseQuery = c.replace("open course", "").trim();
+    if(!courseQuery) {
+      speak("Please say the course name after 'open course'.");
+      return;
+    }
+    
+    const jobKey = JOB_LIST.find(j => j.toLowerCase() === (S.dreamJob || '').toLowerCase()) || null;
+    const courses = jobKey && COURSE_DB[jobKey] ? COURSE_DB[jobKey] : [];
+    
+    let found = courses.find(course => course.name.toLowerCase().includes(courseQuery) || courseQuery.includes(course.skill.toLowerCase()));
+    if(found) {
+      speak(`Opening ${found.name}. I will wait for you to return.`);
+      window.open(found.url, '_blank');
+      
+      const onFocus = async () => {
+        window.removeEventListener('focus', onFocus);
+        speak("Great job, that course is now marked complete. Your progress has been updated.");
+        toggleDone(found.name);
+        
+        if(S.user && S.user.email) {
+          try {
+            await fetch("http://localhost:5000/api/send-completion-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: S.user.email, userName: S.user.name, courseName: found.name })
+            });
+          } catch(e) { console.error("Email API Error:", e); }
+        }
+      };
+      
+      setTimeout(() => {
+        window.addEventListener('focus', onFocus);
+      }, 2000);
+      
+    } else {
+      speak("I couldn't find a matching course. Please try again.");
+    }
+    return;
+  }
+}

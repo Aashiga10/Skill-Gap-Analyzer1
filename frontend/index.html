@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SkillSync AI - Bridge Your Skill Gap</title>
+<title>SkillNexus AI - Bridge Your Skill Gap</title>
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -17,14 +17,14 @@
 <body>
 
 <a class="skip-link" href="#main-content" onclick="skipToContent(event)">Skip to main content</a>
-<div id="sr-announce" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+<div id="sr-announce" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
 
 <!-- ══════════════════════════════════════════════════ -->
 <!--  SCREEN: LANDING                                   -->
 <!-- ══════════════════════════════════════════════════ -->
 <div class="screen active" id="screen-landing">
   <nav class="pub-nav">
-    <div class="brand">✨ SkillSync AI</div>
+    <div class="brand">✨ SkillNexus AI</div>
     <div class="nav-right">
       <button class="theme-btn" onclick="toggleTheme()" title="Toggle dark/light mode" aria-label="Toggle dark or light mode">👁</button>
       <button class="btn btn-o btn-sm" onclick="startVoiceAssistant()" title="Start voice assistant" aria-label="Start voice assistant">🎙 Voice</button>
@@ -58,7 +58,7 @@
 <!-- ══════════════════════════════════════════════════ -->
 <div class="screen" id="screen-about">
   <nav class="pub-nav">
-    <div class="brand">✨ SkillSync AI</div>
+    <div class="brand">✨ SkillNexus AI</div>
     <div class="nav-right">
       <button class="theme-btn" onclick="toggleTheme()">👁</button>
       <button class="btn btn-o btn-sm" onclick="go('landing')">← Back</button>
@@ -66,7 +66,7 @@
     </div>
   </nav>
   <div class="about-hero">
-    <div class="pill a1">📖 About SkillSync AI</div>
+    <div class="pill a1">📖 About SkillNexus AI</div>
     <h1 class="a2" style="font-size:clamp(1.8rem,4vw,3rem);font-weight:700;margin-bottom:14px">What is <span style="color:#7c3aed">SkillSync AI</span>?</h1>
     <p class="a3" style="max-width:640px;color:var(--muted);font-size:1rem;line-height:1.8;margin-bottom:48px">
       SkillSync AI is a free career-growth platform that uses artificial intelligence to analyze the gap between your current skills and your dream job. We give you a personalized roadmap, curated courses, and an AI career assistant — all in one place.
@@ -150,7 +150,7 @@
 <div class="screen" id="screen-login" style="align-items:center;justify-content:center">
   <div style="width:100%;max-width:440px;padding:24px 20px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
-      <div class="brand">✨ SkillSync AI</div>
+      <div class="brand">✨ SkillNexus AI</div>
       <div style="display:flex;gap:8px">
         <button class="theme-btn" onclick="toggleTheme()">👁</button>
         <button class="btn btn-o btn-sm" onclick="go('landing')">← Back</button>
@@ -158,7 +158,7 @@
     </div>
     <div class="card a1">
       <h2 style="font-size:1.7rem;margin-bottom:4px">Welcome Back 👋</h2>
-      <p style="color:var(--muted);font-size:.9rem;margin-bottom:24px">Sign in to your SkillSync account</p>
+      <p style="color:var(--muted);font-size:.9rem;margin-bottom:24px">Sign in to your SkillNexus account</p>
       <button class="social-btn" onclick="doLogin('google')">
         <img src="https://www.svgrepo.com/show/475656/google-color.svg" width="20" alt="G"> Continue with Google
       </button>
@@ -178,7 +178,7 @@
 <div class="screen" id="screen-signup" style="align-items:center;justify-content:center">
   <div style="width:100%;max-width:440px;padding:24px 20px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
-      <div class="brand">✨ SkillSync AI</div>
+      <div class="brand">✨ SkillNexus AI</div>
       <div style="display:flex;gap:8px">
         <button class="theme-btn" onclick="toggleTheme()">👁</button>
         <button class="btn btn-o btn-sm" onclick="go('landing')">← Back</button>
@@ -186,7 +186,7 @@
     </div>
     <div class="card a1">
       <h2 style="font-size:1.7rem;margin-bottom:4px">Create Account ✨</h2>
-      <p style="color:var(--muted);font-size:.9rem;margin-bottom:24px">Join SkillSync AI — it's completely free!</p>
+      <p style="color:var(--muted);font-size:.9rem;margin-bottom:24px">Join SkillNexus AI — it's completely free!</p>
       <button class="social-btn" onclick="doLogin('google')">
         <img src="https://www.svgrepo.com/show/475656/google-color.svg" width="20" alt="G"> Sign up with Google
       </button>
@@ -205,7 +205,7 @@
 <!-- ══════════════════════════════════════════════════ -->
 <div class="screen" id="screen-app">
   <nav class="app-nav">
-    <div class="brand">✨ SkillSync AI</div>
+    <div class="brand">✨ SkillNexus AI</div>
     <div class="nav-links">
       <button type="button" class="nav-item" id="nav-analyse" onclick="goTo('analyse')"><span aria-hidden="true">🎯</span> Analysis</button>
       <button type="button" class="nav-item" id="nav-results" onclick="goTo('results')"><span aria-hidden="true">📊</span> Results</button>
@@ -383,7 +383,7 @@
 <!-- ══════════════════════════════════════════════════ -->
 <div class="screen" id="screen-admin">
   <nav class="pub-nav">
-    <div class="brand">✨ SkillSync AI <span style="font-size:.75rem;background:#ef4444;color:#fff;padding:3px 10px;border-radius:20px;margin-left:8px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600">ADMIN</span></div>
+    <div class="brand">✨ SkillNexus AI <span style="font-size:.75rem;background:#ef4444;color:#fff;padding:3px 10px;border-radius:20px;margin-left:8px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600">ADMIN</span></div>
     <div class="nav-right">
       <button class="theme-btn" onclick="toggleTheme()">👁</button>
       <button class="btn btn-o btn-sm" onclick="go('landing')">← Exit Admin</button>
