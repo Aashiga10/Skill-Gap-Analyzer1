@@ -44,147 +44,147 @@ const JOB_LIST=Object.keys(JOBS);
 // ── COURSES DATABASE ──────────────────────────────
 const COURSE_DB={
   "Web Developer":[
-    {skill:"HTML",name:"HTML & CSS Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=html+css+full+course+beginners+freecodecamp",duration:"6 hrs"},
+    {skill:"HTML",name:"HTML & CSS Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=mU6anWqZJcc",duration:"6 hrs"},
     {skill:"HTML",name:"Responsive Web Design Certification",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/2022/responsive-web-design/",duration:"15 hrs"},
-    {skill:"CSS",name:"CSS Tutorial – Zero to Hero",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=css+tutorial+zero+to+hero",duration:"5 hrs"},
+    {skill:"CSS",name:"CSS Tutorial – Zero to Hero",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=1Rs2ND1ryYc",duration:"5 hrs"},
     {skill:"JavaScript",name:"JavaScript Algorithms and Data Structures",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/",duration:"20 hrs"},
-    {skill:"JavaScript",name:"JavaScript Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=javascript+full+course+beginners",duration:"8 hrs"},
+    {skill:"JavaScript",name:"JavaScript Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=jS4aFq5-91M",duration:"8 hrs"},
     {skill:"React",name:"Front End Development Libraries",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/front-end-development-libraries/",duration:"18 hrs"},
-    {skill:"React",name:"React JS Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=react+js+full+course+2024",duration:"10 hrs"},
+    {skill:"React",name:"React JS Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=bMknfKXIFA8",duration:"10 hrs"},
     {skill:"Node.js",name:"Back End Development and APIs",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/back-end-development-and-apis/",duration:"15 hrs"},
-    {skill:"Node.js",name:"Node.js & Express Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=nodejs+express+full+course",duration:"8 hrs"},
-    {skill:"Git",name:"Git and GitHub for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=git+github+tutorial+beginners+freecodecamp",duration:"3 hrs"},
+    {skill:"Node.js",name:"Node.js & Express Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=Oe421EPjeEQ",duration:"8 hrs"},
+    {skill:"Git",name:"Git and GitHub for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=RGOj5yH7evk",duration:"3 hrs"},
   ],
   "Full Stack Developer":[
     {skill:"HTML",name:"Responsive Web Design",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/2022/responsive-web-design/",duration:"15 hrs"},
-    {skill:"CSS",name:"CSS Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=css+full+course+2024",duration:"5 hrs"},
+    {skill:"CSS",name:"CSS Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=OXGznpKZ_sA",duration:"5 hrs"},
     {skill:"JavaScript",name:"JavaScript Algorithms & Data Structures",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/",duration:"20 hrs"},
     {skill:"React",name:"React Complete Guide",platform:"Udemy",type:"paid",url:"https://www.udemy.com/courses/search/?q=react+complete+guide",duration:"40 hrs"},
-    {skill:"React",name:"React Full Course 2024",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=react+full+course+2024",duration:"12 hrs"},
-    {skill:"Node.js",name:"Node.js REST API Tutorial",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=nodejs+rest+api+tutorial",duration:"6 hrs"},
-    {skill:"MongoDB",name:"MongoDB Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=mongodb+full+course+beginners",duration:"5 hrs"},
-    {skill:"MongoDB",name:"MongoDB & Mongoose Tutorial",platform:"freeCodeCamp",type:"free",url:"https://www.youtube.com/results?search_query=mongodb+mongoose+freecodecamp",duration:"3 hrs"},
-    {skill:"Git",name:"Git & GitHub Crash Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=git+github+crash+course",duration:"2 hrs"},
+    {skill:"React",name:"React Full Course 2024",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=bMknfKXIFA8",duration:"12 hrs"},
+    {skill:"Node.js",name:"Node.js REST API Tutorial",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=pKd0Rpw7O48",duration:"6 hrs"},
+    {skill:"MongoDB",name:"MongoDB Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=ofme2o29ngU",duration:"5 hrs"},
+    {skill:"MongoDB",name:"MongoDB & Mongoose Tutorial",platform:"freeCodeCamp",type:"free",url:"https://www.youtube.com/watch?v=DZBGEVgL2eE",duration:"3 hrs"},
+    {skill:"Git",name:"Git & GitHub Crash Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=SWYqp7iY_Tc",duration:"2 hrs"},
   ],
   "Data Analyst":[
-    {skill:"Excel",name:"Microsoft Excel – Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=microsoft+excel+full+course+beginners",duration:"6 hrs"},
-    {skill:"SQL",name:"SQL Tutorial – Full Database Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=sql+full+course+freecodecamp",duration:"4 hrs"},
+    {skill:"Excel",name:"Microsoft Excel – Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=Vl0H-qTcleg",duration:"6 hrs"},
+    {skill:"SQL",name:"SQL Tutorial – Full Database Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=HXV3zeQKqGY",duration:"4 hrs"},
     {skill:"SQL",name:"Relational Database Certification",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/relational-database/",duration:"20 hrs"},
     {skill:"Python",name:"Scientific Computing with Python",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/scientific-computing-with-python/",duration:"15 hrs"},
-    {skill:"Python",name:"Python for Data Analysis Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=python+data+analysis+full+course",duration:"8 hrs"},
-    {skill:"Power BI",name:"Power BI Full Course – Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=power+bi+full+course+beginners",duration:"5 hrs"},
-    {skill:"Tableau",name:"Tableau for Beginners Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=tableau+full+course+beginners",duration:"4 hrs"},
-    {skill:"Statistics",name:"Statistics for Data Science",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=statistics+for+data+science+full+course",duration:"6 hrs"},
+    {skill:"Python",name:"Python for Data Analysis Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=r-uOLxNrNk8",duration:"8 hrs"},
+    {skill:"Power BI",name:"Power BI Full Course – Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=3u7MQz1EyIs",duration:"5 hrs"},
+    {skill:"Tableau",name:"Tableau for Beginners Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=aHaOIvR00So",duration:"4 hrs"},
+    {skill:"Statistics",name:"Statistics for Data Science",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=Vfo5le26IhY",duration:"6 hrs"},
     {skill:"Statistics",name:"Data Analysis with Python Certification",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/data-analysis-with-python/",duration:"10 hrs"},
   ],
   "Data Scientist":[
     {skill:"Python",name:"Scientific Computing with Python",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/scientific-computing-with-python/",duration:"15 hrs"},
-    {skill:"Python",name:"Python Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=python+full+course+for+beginners",duration:"12 hrs"},
+    {skill:"Python",name:"Python Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=rfscVS0vtbw",duration:"12 hrs"},
     {skill:"Machine Learning",name:"Machine Learning with Python Certification",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/machine-learning-with-python/",duration:"15 hrs"},
-    {skill:"Machine Learning",name:"Machine Learning Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=machine+learning+full+course+2024",duration:"10 hrs"},
-    {skill:"Statistics",name:"Statistics for Data Science",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=statistics+data+science+full+course",duration:"6 hrs"},
-    {skill:"Pandas",name:"Pandas Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=pandas+full+course+python",duration:"4 hrs"},
-    {skill:"NumPy",name:"NumPy Tutorial for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=numpy+tutorial+beginners",duration:"2 hrs"},
+    {skill:"Machine Learning",name:"Machine Learning Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=i_LwzRVP7bg",duration:"10 hrs"},
+    {skill:"Statistics",name:"Statistics for Data Science",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=Vfo5le26IhY",duration:"6 hrs"},
+    {skill:"Pandas",name:"Pandas Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=vmEHCJofslg",duration:"4 hrs"},
+    {skill:"NumPy",name:"NumPy Tutorial for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=QUT1VHiLnnI",duration:"2 hrs"},
     {skill:"Data Visualization",name:"Data Visualization with Python",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/data-analysis-with-python/",duration:"8 hrs"},
-    {skill:"Data Visualization",name:"Matplotlib & Seaborn Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=matplotlib+seaborn+python+full+course",duration:"5 hrs"},
+    {skill:"Data Visualization",name:"Matplotlib & Seaborn Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=O_OEJMIGqlE",duration:"5 hrs"},
   ],
   "Android Developer":[
-    {skill:"Java",name:"Java Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=java+full+course+beginners",duration:"12 hrs"},
-    {skill:"Kotlin",name:"Kotlin Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=kotlin+full+course+beginners",duration:"8 hrs"},
-    {skill:"Android Studio",name:"Android Development Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=android+development+full+course+2024",duration:"14 hrs"},
+    {skill:"Java",name:"Java Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=A74TOX803D0",duration:"12 hrs"},
+    {skill:"Kotlin",name:"Kotlin Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=EExSSotojVI",duration:"8 hrs"},
+    {skill:"Android Studio",name:"Android Development Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=fis26HvvDII",duration:"14 hrs"},
     {skill:"Android Studio",name:"Android Development for Beginners",platform:"Udemy",type:"paid",url:"https://www.udemy.com/courses/search/?q=android+development+beginners",duration:"25 hrs"},
-    {skill:"XML",name:"XML for Android Layouts",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=xml+android+layouts+tutorial",duration:"2 hrs"},
-    {skill:"APIs",name:"REST APIs in Android",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=rest+api+android+kotlin+tutorial",duration:"3 hrs"},
-    {skill:"Firebase",name:"Firebase for Android Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=firebase+android+full+course",duration:"5 hrs"},
+    {skill:"XML",name:"XML for Android Layouts",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=vV-G5E-50Hk",duration:"2 hrs"},
+    {skill:"APIs",name:"REST APIs in Android",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=xHXn3Kg2IQE",duration:"3 hrs"},
+    {skill:"Firebase",name:"Firebase for Android Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=sza-pG1bB0c",duration:"5 hrs"},
   ],
   "UI/UX Designer":[
-    {skill:"Figma",name:"Figma Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=figma+full+course+beginners",duration:"6 hrs"},
+    {skill:"Figma",name:"Figma Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=jwNmzENZZvg",duration:"6 hrs"},
     {skill:"Figma",name:"UI Design with Figma",platform:"Udemy",type:"paid",url:"https://www.udemy.com/courses/search/?q=figma+ui+design",duration:"15 hrs"},
-    {skill:"Adobe XD",name:"Adobe XD Tutorial – Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=adobe+xd+full+course",duration:"4 hrs"},
-    {skill:"UX Principles",name:"UX Design Fundamentals",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=ux+design+fundamentals+course",duration:"5 hrs"},
-    {skill:"Wireframing",name:"Wireframing for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=wireframing+tutorial+beginners",duration:"2 hrs"},
-    {skill:"Prototyping",name:"Prototyping in Figma",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=figma+prototyping+tutorial",duration:"2 hrs"},
-    {skill:"User Research",name:"User Research Methods",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=ux+user+research+methods+tutorial",duration:"3 hrs"},
+    {skill:"Adobe XD",name:"Adobe XD Tutorial – Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=WEljfcOJHEY",duration:"4 hrs"},
+    {skill:"UX Principles",name:"UX Design Fundamentals",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=c9Wg6Cb_YlU",duration:"5 hrs"},
+    {skill:"Wireframing",name:"Wireframing for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=F0-E2hY4e3U",duration:"2 hrs"},
+    {skill:"Prototyping",name:"Prototyping in Figma",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=8I1rL7O1pM4",duration:"2 hrs"},
+    {skill:"User Research",name:"User Research Methods",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=KzVnt5-hIzw",duration:"3 hrs"},
   ],
   "Cyber Security Analyst":[
-    {skill:"Networking",name:"Computer Networking Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=computer+networking+full+course",duration:"8 hrs"},
-    {skill:"Ethical Hacking",name:"Ethical Hacking Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=ethical+hacking+full+course+freecodecamp",duration:"15 hrs"},
-    {skill:"Cryptography",name:"Cryptography Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=cryptography+full+course",duration:"5 hrs"},
-    {skill:"Penetration Testing",name:"Penetration Testing Tutorial",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=penetration+testing+tutorial+beginners",duration:"6 hrs"},
+    {skill:"Networking",name:"Computer Networking Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=qiQR5rTSshw",duration:"8 hrs"},
+    {skill:"Ethical Hacking",name:"Ethical Hacking Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=3Kq1MIfTWCE",duration:"15 hrs"},
+    {skill:"Cryptography",name:"Cryptography Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=jhXCTbFnK8o",duration:"5 hrs"},
+    {skill:"Penetration Testing",name:"Penetration Testing Tutorial",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=3Kq1MIfTWCE",duration:"6 hrs"},
     {skill:"Security Tools",name:"Information Security Certification",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/information-security/",duration:"10 hrs"},
-    {skill:"Linux",name:"Linux Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=linux+full+course+beginners",duration:"7 hrs"},
+    {skill:"Linux",name:"Linux Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=v_1yQOJbvIs",duration:"7 hrs"},
   ],
   "Cloud Engineer":[
-    {skill:"AWS",name:"AWS Full Course – Beginner to Pro",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=aws+full+course+2024",duration:"10 hrs"},
+    {skill:"AWS",name:"AWS Full Course – Beginner to Pro",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=k1RI5locZE4",duration:"10 hrs"},
     {skill:"AWS",name:"AWS Cloud Practitioner",platform:"Udemy",type:"paid",url:"https://www.udemy.com/courses/search/?q=aws+cloud+practitioner",duration:"20 hrs"},
-    {skill:"Azure",name:"Microsoft Azure Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=microsoft+azure+full+course",duration:"8 hrs"},
-    {skill:"Docker",name:"Docker Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=docker+full+course+beginners",duration:"5 hrs"},
-    {skill:"Kubernetes",name:"Kubernetes Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=kubernetes+full+course+beginners",duration:"6 hrs"},
-    {skill:"Linux",name:"Linux Command Line Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=linux+command+line+full+course",duration:"5 hrs"},
-    {skill:"Networking",name:"Networking Fundamentals",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=networking+fundamentals+full+course",duration:"6 hrs"},
+    {skill:"Azure",name:"Microsoft Azure Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=tQoE2cItGvk",duration:"8 hrs"},
+    {skill:"Docker",name:"Docker Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=pTFZFxd4hOI",duration:"5 hrs"},
+    {skill:"Kubernetes",name:"Kubernetes Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=X48VuDVv0do",duration:"6 hrs"},
+    {skill:"Linux",name:"Linux Command Line Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=ZtqBQ68cfJc",duration:"5 hrs"},
+    {skill:"Networking",name:"Networking Fundamentals",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=qiQR5rTSshw",duration:"6 hrs"},
   ],
   "AI/ML Engineer":[
     {skill:"Python",name:"Scientific Computing with Python",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/scientific-computing-with-python/",duration:"15 hrs"},
     {skill:"Machine Learning",name:"Machine Learning with Python",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/machine-learning-with-python/",duration:"15 hrs"},
-    {skill:"Machine Learning",name:"Machine Learning Crash Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=machine+learning+crash+course+2024",duration:"8 hrs"},
-    {skill:"Deep Learning",name:"Deep Learning Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=deep+learning+full+course+2024",duration:"10 hrs"},
-    {skill:"TensorFlow",name:"TensorFlow Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=tensorflow+full+course+beginners",duration:"6 hrs"},
-    {skill:"Data Preprocessing",name:"Data Preprocessing with Python",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=data+preprocessing+python+tutorial",duration:"3 hrs"},
-    {skill:"Statistics",name:"Statistics for ML",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=statistics+for+machine+learning",duration:"5 hrs"},
+    {skill:"Machine Learning",name:"Machine Learning Crash Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=i_LwzRVP7bg",duration:"8 hrs"},
+    {skill:"Deep Learning",name:"Deep Learning Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=VyWAvY2CF9c",duration:"10 hrs"},
+    {skill:"TensorFlow",name:"TensorFlow Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=tPYj3fFJGjk",duration:"6 hrs"},
+    {skill:"Data Preprocessing",name:"Data Preprocessing with Python",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=O_OEJMIGqlE",duration:"3 hrs"},
+    {skill:"Statistics",name:"Statistics for ML",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=xxpc-HPKN28",duration:"5 hrs"},
   ],
   "Database Administrator":[
     {skill:"SQL",name:"SQL Full Course – Relational Databases",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/relational-database/",duration:"20 hrs"},
-    {skill:"SQL",name:"SQL Tutorial Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=sql+tutorial+full+course",duration:"5 hrs"},
-    {skill:"Database Design",name:"Database Design Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=database+design+full+course",duration:"8 hrs"},
-    {skill:"MySQL",name:"MySQL Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=mysql+full+course+beginners",duration:"5 hrs"},
-    {skill:"PostgreSQL",name:"PostgreSQL Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=postgresql+full+course+beginners",duration:"4 hrs"},
-    {skill:"Backup & Recovery",name:"Database Backup & Recovery",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=database+backup+recovery+tutorial",duration:"2 hrs"},
-    {skill:"Performance Tuning",name:"Database Performance Tuning",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=database+performance+tuning+tutorial",duration:"3 hrs"},
+    {skill:"SQL",name:"SQL Tutorial Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=HXV3zeQKqGY",duration:"5 hrs"},
+    {skill:"Database Design",name:"Database Design Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=ztHopE5Wnpc",duration:"8 hrs"},
+    {skill:"MySQL",name:"MySQL Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=7S_tz1z_5bA",duration:"5 hrs"},
+    {skill:"PostgreSQL",name:"PostgreSQL Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=qw--VYLpxG4",duration:"4 hrs"},
+    {skill:"Backup & Recovery",name:"Database Backup & Recovery",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=q6e0QjR4FmU",duration:"2 hrs"},
+    {skill:"Performance Tuning",name:"Database Performance Tuning",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=o04i64vK1F8",duration:"3 hrs"},
   ],
   "Game Developer":[
-    {skill:"C#",name:"C# Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=c+sharp+full+course+beginners",duration:"8 hrs"},
-    {skill:"C++",name:"C++ Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=c+plus+plus+full+course+beginners",duration:"10 hrs"},
-    {skill:"Unity",name:"Unity Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=unity+full+course+beginners+2024",duration:"12 hrs"},
+    {skill:"C#",name:"C# Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=GhQdlIFylQ8",duration:"8 hrs"},
+    {skill:"C++",name:"C++ Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=vLnPwxZdW4Y",duration:"10 hrs"},
+    {skill:"Unity",name:"Unity Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=gB1F9G0JXOo",duration:"12 hrs"},
     {skill:"Unity",name:"Complete C# Unity Developer",platform:"Udemy",type:"paid",url:"https://www.udemy.com/courses/search/?q=unity+c+sharp+game+development",duration:"30 hrs"},
-    {skill:"Unreal Engine",name:"Unreal Engine Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=unreal+engine+full+course+beginners",duration:"10 hrs"},
-    {skill:"Game Design",name:"Game Design Fundamentals",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=game+design+fundamentals+course",duration:"4 hrs"},
-    {skill:"Physics Engines",name:"Game Physics Tutorial",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=game+physics+tutorial+unity",duration:"3 hrs"},
+    {skill:"Unreal Engine",name:"Unreal Engine Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=gQmiqmxJMtA",duration:"10 hrs"},
+    {skill:"Game Design",name:"Game Design Fundamentals",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=1F_4-tBvG2Q",duration:"4 hrs"},
+    {skill:"Physics Engines",name:"Game Physics Tutorial",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=2Tz89kLgCzw",duration:"3 hrs"},
   ],
   "Software Engineer":[
-    {skill:"Java",name:"Java Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=java+full+course+beginners",duration:"12 hrs"},
+    {skill:"Java",name:"Java Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=A74TOX803D0",duration:"12 hrs"},
     {skill:"Python",name:"Scientific Computing with Python",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/scientific-computing-with-python/",duration:"15 hrs"},
-    {skill:"C++",name:"C++ Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=c+plus+plus+full+course",duration:"10 hrs"},
-    {skill:"Data Structures",name:"Data Structures Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=data+structures+full+course",duration:"8 hrs"},
+    {skill:"C++",name:"C++ Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=vLnPwxZdW4Y",duration:"10 hrs"},
+    {skill:"Data Structures",name:"Data Structures Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=RBSGKlAvoiM",duration:"8 hrs"},
     {skill:"Algorithms",name:"Algorithms and Data Structures",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/",duration:"20 hrs"},
-    {skill:"Algorithms",name:"Algorithms Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=algorithms+full+course+beginners",duration:"6 hrs"},
-    {skill:"OOP",name:"Object Oriented Programming",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=object+oriented+programming+full+course",duration:"5 hrs"},
+    {skill:"Algorithms",name:"Algorithms Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=8hly31xKli0",duration:"6 hrs"},
+    {skill:"OOP",name:"Object Oriented Programming",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=pTB0EiLXUC8",duration:"5 hrs"},
   ],
   "DevOps Engineer":[
-    {skill:"CI/CD",name:"CI/CD Pipeline Tutorial",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=cicd+pipeline+tutorial+beginners",duration:"4 hrs"},
-    {skill:"Docker",name:"Docker Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=docker+full+course+2024",duration:"5 hrs"},
-    {skill:"Kubernetes",name:"Kubernetes Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=kubernetes+full+course+2024",duration:"6 hrs"},
-    {skill:"Jenkins",name:"Jenkins Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=jenkins+full+course+beginners",duration:"4 hrs"},
-    {skill:"Linux",name:"Linux for DevOps Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=linux+for+devops+full+course",duration:"6 hrs"},
-    {skill:"Git",name:"Git & GitHub Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=git+github+full+course",duration:"3 hrs"},
+    {skill:"CI/CD",name:"CI/CD Pipeline Tutorial",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=62N8UiKUcbA",duration:"4 hrs"},
+    {skill:"Docker",name:"Docker Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=pTFZFxd4hOI",duration:"5 hrs"},
+    {skill:"Kubernetes",name:"Kubernetes Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=X48VuDVv0do",duration:"6 hrs"},
+    {skill:"Jenkins",name:"Jenkins Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=nCKxl7QFFAY",duration:"4 hrs"},
+    {skill:"Linux",name:"Linux for DevOps Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=ZtqBQ68cfJc",duration:"6 hrs"},
+    {skill:"Git",name:"Git & GitHub Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=RGOj5yH7evk",duration:"3 hrs"},
     {skill:"Git",name:"Quality Assurance Certification",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/quality-assurance/",duration:"10 hrs"},
   ],
   "Business Analyst":[
-    {skill:"Excel",name:"Excel Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=excel+full+course+beginners",duration:"6 hrs"},
-    {skill:"SQL",name:"SQL for Business Analysts",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=sql+for+business+analysts+tutorial",duration:"4 hrs"},
+    {skill:"Excel",name:"Excel Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=Vl0H-qTcleg",duration:"6 hrs"},
+    {skill:"SQL",name:"SQL for Business Analysts",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=HXV3zeQKqGY",duration:"4 hrs"},
     {skill:"SQL",name:"Relational Database Certification",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/relational-database/",duration:"20 hrs"},
     {skill:"Data Analysis",name:"Data Analysis with Python",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/data-analysis-with-python/",duration:"10 hrs"},
-    {skill:"Communication",name:"Business Communication Skills",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=business+communication+skills+course",duration:"3 hrs"},
-    {skill:"Requirement Gathering",name:"Requirements Gathering Tutorial",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=requirements+gathering+business+analyst+tutorial",duration:"2 hrs"},
-    {skill:"Documentation",name:"Business Analysis Documentation",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=business+analyst+documentation+tutorial",duration:"2 hrs"},
+    {skill:"Communication",name:"Business Communication Skills",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=W0jEA2XzZQQ",duration:"3 hrs"},
+    {skill:"Requirement Gathering",name:"Requirements Gathering Tutorial",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=R1E8R16y62o",duration:"2 hrs"},
+    {skill:"Documentation",name:"Business Analysis Documentation",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=7c8P0N4pZ2Y",duration:"2 hrs"},
   ],
   "Network Engineer":[
-    {skill:"Networking",name:"Computer Networking Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=computer+networking+full+course+beginners",duration:"8 hrs"},
-    {skill:"Routing",name:"Routing Protocols Tutorial",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=routing+protocols+tutorial+ccna",duration:"4 hrs"},
-    {skill:"Switching",name:"Switching Concepts Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=switching+concepts+networking+tutorial",duration:"3 hrs"},
-    {skill:"Cisco",name:"Cisco CCNA Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=cisco+ccna+full+course+2024",duration:"20 hrs"},
+    {skill:"Networking",name:"Computer Networking Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=qiQR5rTSshw",duration:"8 hrs"},
+    {skill:"Routing",name:"Routing Protocols Tutorial",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=uK8sR8M0L-k",duration:"4 hrs"},
+    {skill:"Switching",name:"Switching Concepts Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=68KkIfsQkE4",duration:"3 hrs"},
+    {skill:"Cisco",name:"Cisco CCNA Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=H8W9oMNSuwo",duration:"20 hrs"},
     {skill:"Cisco",name:"Cisco CCNA Complete Course",platform:"Udemy",type:"paid",url:"https://www.udemy.com/courses/search/?q=cisco+ccna",duration:"40 hrs"},
-    {skill:"Firewalls",name:"Firewall Security Tutorial",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=firewall+security+tutorial+beginners",duration:"3 hrs"},
-    {skill:"Troubleshooting",name:"Network Troubleshooting Guide",platform:"YouTube",type:"free",url:"https://www.youtube.com/results?search_query=network+troubleshooting+guide",duration:"2 hrs"},
+    {skill:"Firewalls",name:"Firewall Security Tutorial",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=9g7nJ-hBf98",duration:"3 hrs"},
+    {skill:"Troubleshooting",name:"Network Troubleshooting Guide",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=9a1z93Yk6aM",duration:"2 hrs"},
   ]
 };
 
@@ -223,7 +223,10 @@ function go(id){
   window.scrollTo(0,0);
   if(id==='app') initApp();
   focusScreenHead(scr);
-  if(id==='login'&&V.listening&&!V.loginFlow.active)startLoginFlow();
+  if(id==='login'&&V.listening){
+    if(!V.loginFlow.active)startLoginFlow();
+    else rePromptLoginStep();
+  }
 }
 
 // ── AUTH ───────────────────────────────────────────
@@ -434,40 +437,53 @@ function analyzeSkills(){
   updateUserJobInDB();
   goTo('results');
 }
-// async function uploadResume(event) {
+async function uploadResume(event) {
+    if (event) event.preventDefault();
+    const file = document.getElementById("resumeFile").files[0];
+    const statusDiv = document.getElementById("resume-status");
+    
+    if (!file) {
+        if(typeof showToast === 'function') showToast("Please choose a resume file first.", "error");
+        else alert("Please choose a resume file first.");
+        return;
+    }
 
-//     if (event) event.preventDefault();
+    const formData = new FormData();
+    formData.append("resume", file);
+    
+    if(statusDiv) {
+        statusDiv.style.display = 'block';
+        statusDiv.textContent = 'Uploading and extracting skills... (This may take a moment)';
+    }
 
-//     const file = document.getElementById("resumeFile").files[0];
+    try {
+        const response = await fetch("http://localhost:5000/uploadResume", {
+            method: "POST",
+            body: formData
+        });
 
-//     if (!file) {
-//         alert("Choose Resume");
-//         return;
-//     }
+        const data = await response.json();   
+        
+        if (data.success && data.skills) {
+            if(statusDiv) statusDiv.textContent = `Success! Extracted ${data.skills.length} skills.`;
+            data.skills.forEach(skill => {
+                const s = skill.trim();
+                if (s && !S.skills.includes(s)) S.skills.push(s);
+            });
+            renderTags();
+            if(typeof showToast === 'function') showToast("Skills extracted from resume!", "success");
+        } else {
+            if(statusDiv) statusDiv.textContent = data.message || "Failed to extract skills.";
+            if(typeof showToast === 'function') showToast(data.message || "Failed to extract skills", "error");
+        }
 
-//     const formData = new FormData();
-//     formData.append("resume", file);
-
-//     try {
-
-//         const response = await fetch("http://127.0.0.1:5000/uploadResume", {
-//             method: "POST",
-//             body: formData
-//         });
-
-//         console.log("Response:", response.status);
-
-//         const data = await response.json();   // ✅ ONLY ONCE
-
-//         console.log(data);
-
-//         alert(data.message);
-
-//     } catch (err) {
-//         console.error("Upload Error:", err);
-//         alert("Upload failed");
-//     }
-// }
+    } catch (err) {
+        console.error("Upload Error:", err);
+        if(statusDiv) statusDiv.textContent = "Upload failed.";
+        if(typeof showToast === 'function') showToast("Upload failed", "error");
+    }
+}
+window.uploadResume = uploadResume;
 
 // ── RESULTS ──────────────────────────────────────
 async function renderResults(){
@@ -928,7 +944,7 @@ function startListening(){
   r.onend=()=>{
     if(V.listening){try{r.start();}catch(e){V.listening=false;updateMicUI();}}
   };
-  try{r.start();voiceContextIntro();}catch(e){V.listening=false;updateMicUI();setVoiceStatus('Could not start microphone.');}
+  try{r.start();}catch(e){V.listening=false;updateMicUI();setVoiceStatus('Could not start microphone.');}
 }
 function stopListening(){
   V.listening=false;
@@ -976,23 +992,19 @@ function voiceContextIntro(){
   if(loginScreen&&loginScreen.classList.contains('active')){
     if(!V.loginFlow.active)startLoginFlow();
     else rePromptLoginStep();
+  }else if (V.loginFlow.active) {
+    // Keep login flow active even if navigated away, but don't re-announce
   }else{
     announce('Voice assistant is active. Say help for commands. For example: go to courses, show my skill gap, or read this page.');
   }
 }
 function startLoginFlow(){
   V.loginFlow.active=true;
+  V.loginFlow.email='';
+  V.loginFlow.step='email';
   const emailInp=document.getElementById('login-email');
-  const existing=(emailInp&&emailInp.value.trim())||'';
-  if(existing){
-    V.loginFlow.email=existing;
-    V.loginFlow.step='password';
-    speak('An email is already entered. Please type your password in the password box using the keyboard. I will not read it aloud for security. When you are done, say login.');
-  }else{
-    V.loginFlow.email='';
-    V.loginFlow.step='email';
-    speak('Welcome to SkillSync AI. To log in by voice, I will ask for your email. Say your email, for example: john dot smith at gmail dot com.');
-  }
+  if(emailInp) emailInp.value='';
+  speak('Welcome to SkillSync AI. To log in by voice, I will ask for your email. Say your email, for example: john dot smith at gmail dot com.');
 }
 function rePromptLoginStep(){
   if(!V.loginFlow.active)return;
@@ -1004,6 +1016,11 @@ function exitLoginFlow(){
   V.loginFlow.active=false;
   V.loginFlow.step='idle';
   V.loginFlow.email='';
+  setTimeout(() => {
+    if (V.listening && V.enabled) {
+      speak('You are now logged in and on your dashboard. Say analyze my skills to start your skill gap analysis, or say go to courses for recommendations.');
+    }
+  }, 1000);
 }
 function handleLoginVoiceCommand(t,c){
   const step=V.loginFlow.step;
@@ -1258,18 +1275,20 @@ function initAutoVoice(){
   if(!speechSupported())return;
   setTimeout(()=>{
     if(!V.enabled)return;
-    announce('Welcome to SkillSync AI. I am your voice assistant. I can help you log in, set your dream job, and guide your learning. Say help for commands, or press any key or tap the screen to enable the microphone.');
-    if(!V.listening){openPanel();startListening();}
-  },400);
-  const kick=()=>{
-    window.removeEventListener('keydown',kick);
-    window.removeEventListener('pointerdown',kick);
-    window.removeEventListener('touchstart',kick);
-    if(!V.listening&&V.enabled){openPanel();startListening();}
-  };
-  window.addEventListener('keydown',kick);
-  window.addEventListener('pointerdown',kick);
-  window.addEventListener('touchstart',kick);
+    const loginScreen = document.getElementById('screen-login');
+    const isOnLogin = loginScreen && loginScreen.classList.contains('active');
+    
+    openPanel();
+    startListening();
+    
+    if (isOnLogin) {
+      if (!V.loginFlow.active) {
+        startLoginFlow();
+      }
+    } else {
+      speak('Welcome to SkillSync AI. Say go to login page to sign in.');
+    }
+  }, 500);
 }
 
 // ── VOICE READ-ALOUD ──────────────────────────────
@@ -1384,7 +1403,26 @@ function handleVoiceCommand(t){
   if(c.includes('voice off')||c.includes('turn off voice')){setVoiceEnabled(false);return;}
   if(c.includes('theme')||c.includes('dark mode')||c.includes('light mode')){toggleTheme();return;}
   if(voiceNav(c))return;
-  announce('Sorry, I did not understand that. Say help for a list of commands.');
+  
+  // Fallback to Ollama backend
+  setVoiceStatus('Thinking...');
+  fetch('http://localhost:5000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: t })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if(data.error) {
+      announce('Sorry, I did not understand that. Say help for a list of commands.');
+    } else if(data.response) {
+      announce(data.response);
+    }
+  })
+  .catch(err => {
+    console.error('Ollama error:', err);
+    announce('Sorry, I did not understand that. Say help for a list of commands.');
+  });
 }
 
 // ── VOICE INIT ────────────────────────────────────
