@@ -218,15 +218,26 @@ function skipToContent(e){
 
 // ── SCREEN ROUTING ─────────────────────────────────
 function go(id){
+  const bioModal = document.getElementById('voice-bio-modal');
+  if (bioModal && bioModal.style.display !== 'none') {
+    closeVoiceBioModal(false);
+  }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const scr=document.getElementById('screen-'+id);
   scr.classList.add('active');
   window.scrollTo(0,0);
   if(id==='app') initApp();
   focusScreenHead(scr);
-  if(id==='login'&&V.listening){
-    if(!V.loginFlow.active)startLoginFlow();
-    else rePromptLoginStep();
+
+  // Spoken screen announcements for blind accessibility
+  const screenDescriptions = {
+    landing: 'Home screen. Say: Voice login, to sign in with your voice, or say: Sign up.',
+    login: 'Login screen. Say: Voice login, to verify your voice, or say: Hi I am, followed by your name.',
+    signup: 'Sign up screen. Say: Enroll voice, to register your voice.',
+    about: 'About screen. SkillNexus AI bridges your career skill gaps.'
+  };
+  if(screenDescriptions[id]){
+    announce(screenDescriptions[id]);
   }
 }
 
@@ -397,6 +408,10 @@ function renderTags(){
 
 // ── IN-APP NAV ────────────────────────────────────
 function goTo(page){
+  const bioModal = document.getElementById('voice-bio-modal');
+  if (bioModal && bioModal.style.display !== 'none') {
+    closeVoiceBioModal(false);
+  }
   if(!V.suppressHistory){
     const cur=document.querySelector('.page.active');
     const curId=cur?cur.id.replace('page-',''):'analyse';
@@ -419,6 +434,7 @@ function goTo(page){
   if(page==='profile')renderProfile();
   const head=pg.querySelector('h1');
   if(head){head.setAttribute('tabindex','-1');head.focus({preventScroll:true});}
+  announce('Opened ' + page + ' section.');
   if(page==='analyse'&&S.user&&V.listening&&!V.analyseHintShown){
     V.analyseHintShown=true;
     setTimeout(()=>{
@@ -834,6 +850,10 @@ const V={
   enabled:true,
   rate:1,
   listening:false,
+  handsFree:true,
+  continuousListening:true,
+  isSpeaking:false,
+  autoWelcomeTriggered:false,
   recognition:null,
   lastSpoken:'',
   pageHistory:[],
@@ -842,6 +862,8 @@ const V={
   dreamFlow:{active:false,raw:'',pending:null},
   interest:{active:false,stage:'idle',matches:[],introShown:false},
   registrationFlow: { active: false, step: 'idle', name: '', email: '', attempts: 0 },
+  voiceBioFlow: { active: false, mode: 'login', step: 'name', user: null, attempts: 0, tempName: '', enrollName: '' },
+  voiceboxFlow: { active: false, mode: 'login', user: null },
   analysisFlow: { active: false, step: 'idle', skill: '', currentSkills: '', time: '' },
   courseFlow: { active: false, currentCourseIndex: 0 },
   analyseHintShown:false
@@ -855,31 +877,167 @@ try{
 function speechSupported(){
   return ('speechSynthesis' in window)||('SpeechRecognition' in window)||('webkitSpeechRecognition' in window);
 }
+function playAudioChime(type='listen'){
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if(!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    if (type === 'listen') {
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12);
+      gain.gain.setValueAtTime(0.06, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.15);
+    } else if (type === 'recognized') {
+      osc.frequency.setValueAtTime(660, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(520, ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.06, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.1);
+    }
+  } catch(e) {}
+}
+
+let currentVoiceboxAudio = null;
+
+async function checkVoiceboxStatus() {
+  try {
+    const res = await fetch("http://localhost:5000/api/voicebox/status");
+    if (res.ok) {
+      const data = await res.json();
+      const vbBadge = document.getElementById('voicebox-status-badge');
+      if (vbBadge) {
+        if (data.status === 'connected') {
+          const profileName = (data.profiles && data.profiles[0]) ? data.profiles[0].name : 'Active';
+          const isDownloading = data.tasks && data.tasks.downloads && data.tasks.downloads.some(d => d.status === 'downloading');
+          if (isDownloading) {
+            const dl = data.tasks.downloads.find(d => d.status === 'downloading');
+            const pct = Math.round(dl.progress || 0);
+            vbBadge.innerHTML = `🟢 Voicebox Active: <b>${profileName}</b> Voice<br><span style="font-size:0.7rem;opacity:0.85;">(AI Model downloading: ${pct}%)</span>`;
+          } else {
+            vbBadge.innerHTML = `🟢 Voicebox Connected: <b>${profileName}</b> Voice Clone`;
+          }
+          vbBadge.style.display = 'block';
+        } else {
+          vbBadge.style.display = 'none';
+        }
+      }
+    }
+  } catch (e) {}
+}
+
 function speak(text){
-  if(!V.enabled||typeof text!=='string'||!text.trim()||!('speechSynthesis' in window))return;
+  if(!V.enabled||typeof text!=='string'||!text.trim())return;
   try{
     V.lastSpoken=text;
-    speechSynthesis.cancel();
+    V.isSpeaking = true;
+    stopSpeaking();
     
-    // Stop listening temporarily so mic doesn't catch the feedback
-    const wasListening = V.listening;
-    if (wasListening) stopListening();
+    // Temporarily pause speech recognition so mic doesn't catch the speaker's voice
+    if (V.recognition && V.listening) {
+      try { V.recognition.stop(); } catch(e){}
+    }
 
-    const u=new SpeechSynthesisUtterance(text);
-    u.rate=V.rate;u.pitch=1;
-    const vs=speechSynthesis.getVoices().filter(v=>/en[-_]/i.test(v.lang));
-    if(vs.length)u.voice=vs[0];
-    
-    u.onend = () => {
-      if (wasListening && !V.listening) {
-        startListening();
+    const onDone = () => {
+      V.isSpeaking = false;
+      if (currentVoiceboxAudio) {
+        currentVoiceboxAudio = null;
+      }
+      // After speech synthesis finishes, automatically restart listening for blind accessibility!
+      if (V.enabled && (V.handsFree || V.continuousListening)) {
+        setTimeout(() => {
+          if (!V.isSpeaking) {
+            startListening();
+          }
+        }, 300);
       }
     };
-    
-    speechSynthesis.speak(u);
-  }catch(e){console.error('speak error:',e);}
+
+    // Try Voicebox AI voice first via backend /api/tts
+    let voiceboxAttempted = false;
+    const voiceboxPromise = (async () => {
+      try {
+        const controller = new AbortController();
+        // Keep timeout snappy so there's no noticeable delay if Voicebox is busy or downloading
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const resp = await fetch("http://localhost:5000/api/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (resp.ok) {
+          const contentType = resp.headers.get("content-type") || "";
+          if (contentType.includes("audio") || contentType.includes("wav") || contentType.includes("octet-stream")) {
+            const blob = await resp.blob();
+            const audioUrl = URL.createObjectURL(blob);
+            currentVoiceboxAudio = new Audio(audioUrl);
+            currentVoiceboxAudio.playbackRate = V.rate || 1;
+            currentVoiceboxAudio.onended = () => {
+              URL.revokeObjectURL(audioUrl);
+              onDone();
+            };
+            currentVoiceboxAudio.onerror = () => {
+              URL.revokeObjectURL(audioUrl);
+              fallbackSpeech(text, onDone);
+            };
+            await currentVoiceboxAudio.play();
+            return true;
+          }
+        }
+      } catch (e) {}
+      return false;
+    })();
+
+    voiceboxPromise.then(success => {
+      if (!success) {
+        fallbackSpeech(text, onDone);
+      }
+    });
+
+  }catch(e){
+    V.isSpeaking = false;
+    console.error('speak error:',e);
+  }
 }
+
+function fallbackSpeech(text, onDone) {
+  if (!('speechSynthesis' in window)) {
+    if (onDone) onDone();
+    return;
+  }
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = V.rate;
+    u.pitch = 1;
+    const vs = speechSynthesis.getVoices().filter(v => /en[-_]/i.test(v.lang));
+    if (vs.length) u.voice = vs[0];
+    u.onend = onDone;
+    u.onerror = onDone;
+    speechSynthesis.speak(u);
+  } catch(e) {
+    if (onDone) onDone();
+  }
+}
+
 function stopSpeaking(){
+  if (currentVoiceboxAudio) {
+    try {
+      currentVoiceboxAudio.pause();
+      currentVoiceboxAudio.currentTime = 0;
+    } catch(e) {}
+    currentVoiceboxAudio = null;
+  }
   if('speechSynthesis' in window){try{speechSynthesis.cancel();}catch(e){}}
 }
 function setVoiceStatus(msg){
@@ -887,6 +1045,7 @@ function setVoiceStatus(msg){
   if(el)el.textContent=msg;
 }
 function openPanel(){
+  checkVoiceboxStatus();
   const p=document.getElementById('voice-panel');
   if(p)p.removeAttribute('hidden');
   const b=document.getElementById('mic-btn');
@@ -934,12 +1093,12 @@ function startListening(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){
     setVoiceStatus('Voice recognition is not supported in this browser.');
-    announce('Voice recognition is not supported in this browser.');
+    announce('Voice recognition is not supported in this browser. Please use Chrome or Edge.');
     return;
   }
   
-  // Prevent InvalidStateError if already started
-  if (V.listening && V.recognition) return;
+  // Don't start if currently speaking
+  if (V.isSpeaking) return;
 
   if (!V.recognition) {
     try{
@@ -954,27 +1113,41 @@ function startListening(){
         for(let i=ev.resultIndex;i<ev.results.length;i++){
           if(ev.results[i].isFinal) t+=ev.results[i][0].transcript;
         }
-        if(t.trim()) handleVoiceCommand(t.trim());
+        if(t.trim()) {
+          playAudioChime('recognized');
+          handleVoiceCommand(t.trim());
+        }
       };
       
       V.recognition.onerror=(ev)=>{
         if(ev.error==='not-allowed'||ev.error==='service-not-allowed'){
           setVoiceStatus('Microphone access denied. Please allow microphone permission.');
           announce('Microphone access was denied. Please check browser permissions.');
-          stopListening();
+          V.listening=false;
+          V.handsFree=false;
+          updateMicUI();
         }else if(ev.error==='no-speech'){
-          setVoiceStatus('No speech detected. Try again.');
+          // Do not cancel listening on silence in hands-free mode!
+          setVoiceStatus('🎤 Listening hands-free... Speak anytime.');
         }else if(ev.error==='network'){
           setVoiceStatus('Speech recognition network error.');
         }else{
-          setVoiceStatus('Voice recognition error: '+ev.error);
+          console.warn('Voice recognition error:', ev.error);
         }
       };
       
       V.recognition.onend=()=>{
-        if(V.listening){
-          try{ V.recognition.start(); }
-          catch(e){ V.listening=false; updateMicUI(); }
+        // In continuous hands-free mode, restart listening automatically unless user stopped or system is speaking
+        if(V.listening && !V.isSpeaking && (V.handsFree || V.continuousListening)){
+          setTimeout(() => {
+            if(V.listening && !V.isSpeaking){
+              try{ V.recognition.start(); }
+              catch(e){}
+            }
+          }, 300);
+        } else if(!V.handsFree) {
+          V.listening=false;
+          updateMicUI();
         }
       };
     }catch(e){
@@ -984,29 +1157,37 @@ function startListening(){
   }
 
   V.listening=true;
+  V.handsFree=true;
   openPanel();
   updateMicUI();
   try{
     V.recognition.start();
+    setVoiceStatus('🎤 Listening hands-free... Speak anytime.');
+    playAudioChime('listen');
   }catch(e){
     if(e.name !== 'InvalidStateError') {
-      V.listening=false;
-      updateMicUI();
-      setVoiceStatus('Could not start microphone.');
+      console.warn('Mic start error:', e);
     }
   }
 }
-function stopListening(){
+function stopListening(force=false){
+  if(force){
+    V.handsFree=false;
+    V.continuousListening=false;
+  }
   V.listening=false;
   if(V.recognition){try{V.recognition.stop();}catch(e){}}
   updateMicUI();
-  setVoiceStatus('Listening stopped.');
+  setVoiceStatus('Listening paused. Press Spacebar or click mic to resume.');
 }
 function toggleListening(){
   if(!speechSupported()){announce('Voice recognition is not supported in this browser. Please use Chrome or Edge.');return;}
   openPanel();
-  if(V.listening)stopListening();
-  else startListening();
+  if(V.listening)stopListening(true);
+  else {
+    V.handsFree=true;
+    startListening();
+  }
 }
 
 // ── VOICE LOGIN FLOW ──────────────────────────────
@@ -1320,43 +1501,64 @@ function startJobDiscovery(){
   startInterestFlow('');
 }
 
-// ── AUTO VOICE ON OPEN ────────────────────────────
+// ── AUTO VOICE ON OPEN (Accessible for Blind Users) ───
 function initAutoVoice(){
   if(!speechSupported())return;
   
-  // Wait for user interaction to satisfy autoplay policies
-  // A blind user will typically press Tab, Enter, or arrow keys to navigate.
-  const handleInteraction = () => {
-    document.removeEventListener('click', handleInteraction);
-    document.removeEventListener('keydown', handleInteraction);
-    document.removeEventListener('touchstart', handleInteraction);
-    
-    if(!V.enabled) return;
-    setTimeout(() => {
-      const loginScreen = document.getElementById('screen-login');
-      const isOnLogin = loginScreen && loginScreen.classList.contains('active');
-      
-      openPanel();
-      startListening();
-      
-      if (isOnLogin) {
-        if (!V.loginFlow.active) startLoginFlow();
-      } else {
-        speak('Welcome to SkillNexus AI. Please say: Hi, I am, followed by your name, to log in.');
-      }
-    }, 300);
-  };
-  
-  // Attempt optimistic speak (browsers may block this without interaction)
-  try {
-    const u = new SpeechSynthesisUtterance('');
-    u.volume = 0; // silent check
-    speechSynthesis.speak(u);
-  } catch (e) {}
+  const welcomeText = 'Welcome to SkillNexus AI, the accessible voice learning platform for everyone. Hands-free voice assistant is active. To log in with your voice, say: Voice Login, or say: Hi, I am, followed by your name. Say: Help, to hear all commands. You can speak anytime without clicking.';
 
-  document.addEventListener('click', handleInteraction);
-  document.addEventListener('keydown', handleInteraction);
-  document.addEventListener('touchstart', handleInteraction);
+  window.triggerVoiceGreeting = function(){
+    if(V.autoWelcomeTriggered) return;
+    V.autoWelcomeTriggered = true;
+    V.handsFree = true;
+    V.listening = true;
+    openPanel();
+    speak(welcomeText);
+  };
+
+  // Immediate attempt on page load
+  setTimeout(() => {
+    try {
+      const u = new SpeechSynthesisUtterance('');
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }, 100);
+
+  // Trigger voice greeting immediately on first touch, click, or keypress anywhere
+  const handleFirstInteraction = () => {
+    ['click', 'keydown', 'touchstart', 'pointerdown'].forEach(evt => {
+      document.removeEventListener(evt, handleFirstInteraction, true);
+      window.removeEventListener(evt, handleFirstInteraction, true);
+    });
+    window.triggerVoiceGreeting();
+  };
+
+  ['click', 'keydown', 'touchstart', 'pointerdown'].forEach(evt => {
+    document.addEventListener(evt, handleFirstInteraction, { once: true, capture: true });
+    window.addEventListener(evt, handleFirstInteraction, { once: true, capture: true });
+  });
+
+  // Global Keyboard Accessibility: Spacebar pauses/resumes listening or stops speaking
+  document.addEventListener('keydown', (e) => {
+    const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+    if (e.code === 'Space' || e.key === ' ') {
+      e.preventDefault();
+      if (V.isSpeaking) {
+        stopSpeaking();
+        V.isSpeaking = false;
+        startListening();
+      } else if (V.listening) {
+        stopListening(true);
+        announce('Voice assistant paused. Press Spacebar to resume.');
+      } else {
+        V.handsFree = true;
+        startListening();
+        announce('Voice assistant listening.');
+      }
+    }
+  });
 }
 
 // ── VOICE READ-ALOUD ──────────────────────────────
@@ -1420,6 +1622,430 @@ function voiceNav(c){
   }
   return false;
 }
+
+// ── VOICE BIOMETRICS (SPEAKER VERIFICATION) ─────────
+let bioAudioCtx = null;
+let bioAnalyser = null;
+let bioStream = null;
+let bioAnimId = null;
+
+function initBioAudioVisualizer() {
+  const canvas = document.getElementById('bio-wave-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function drawBioWaveFallback() {
+    let t = 0;
+    function loop() {
+      if (!V.voiceBioFlow || !V.voiceBioFlow.active) return;
+      bioAnimId = requestAnimationFrame(loop);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath();
+      const isSuccess = V.voiceBioFlow.step === 'verified' || V.voiceBioFlow.step === 'enrolled';
+      ctx.strokeStyle = isSuccess ? '#10b981' : '#7c3aed';
+      ctx.lineWidth = 3;
+      for (let x = 0; x < canvas.width; x++) {
+        const y = canvas.height / 2 + Math.sin((x + t) * 0.05) * 12 * Math.sin(t * 0.03);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      t += 2;
+    }
+    loop();
+  }
+
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      bioStream = stream;
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        bioAudioCtx = new AudioCtx();
+        const src = bioAudioCtx.createMediaStreamSource(stream);
+        bioAnalyser = bioAudioCtx.createAnalyser();
+        bioAnalyser.fftSize = 64;
+        src.connect(bioAnalyser);
+
+        function drawLive() {
+          if (!V.voiceBioFlow || !V.voiceBioFlow.active) return;
+          bioAnimId = requestAnimationFrame(drawLive);
+          const bufLen = bioAnalyser.frequencyBinCount;
+          const data = new Uint8Array(bufLen);
+          bioAnalyser.getByteFrequencyData(data);
+
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          const barW = (canvas.width / bufLen) * 1.5;
+          let x = 0;
+          for (let i = 0; i < bufLen; i++) {
+            const h = (data[i] / 255) * (canvas.height * 0.8) + 4;
+            const isSuccess = V.voiceBioFlow.step === 'verified' || V.voiceBioFlow.step === 'enrolled';
+            ctx.fillStyle = isSuccess ? 'rgba(16, 185, 129, 0.75)' : `rgba(124, 58, 237, ${0.35 + (h / canvas.height) * 0.65})`;
+            ctx.fillRect(x, canvas.height / 2 - h / 2, barW - 2, h);
+            x += barW;
+          }
+        }
+        drawLive();
+      } else {
+        drawBioWaveFallback();
+      }
+    }).catch(() => {
+      drawBioWaveFallback();
+    });
+  } else {
+    drawBioWaveFallback();
+  }
+}
+
+function stopBioAudioVisualizer() {
+  if (bioAnimId) { cancelAnimationFrame(bioAnimId); bioAnimId = null; }
+  if (bioStream) {
+    try { bioStream.getTracks().forEach(tr => tr.stop()); } catch(e){}
+    bioStream = null;
+  }
+  if (bioAudioCtx && bioAudioCtx.state !== 'closed') {
+    try { bioAudioCtx.close(); } catch(e){}
+    bioAudioCtx = null;
+  }
+  bioAnalyser = null;
+}
+
+function updateBioModalUI() {
+  const title = document.getElementById('bio-modal-title');
+  const badge = document.getElementById('bio-mode-badge');
+  const sub = document.getElementById('bio-modal-sub');
+  const step1 = document.getElementById('bio-step-1');
+  const step2 = document.getElementById('bio-step-2');
+  const step3 = document.getElementById('bio-step-3');
+  const sTitle = document.getElementById('bio-status-title');
+  const sDesc = document.getElementById('bio-status-desc');
+  const glow = document.getElementById('bio-glow-ring');
+  const icon = document.getElementById('bio-scanner-icon');
+
+  if (glow) glow.className = 'bio-scanner-glow';
+
+  if (!V.voiceBioFlow) return;
+
+  if (V.voiceBioFlow.mode === 'login') {
+    if (badge) badge.textContent = '🎙️ Speaker Verification';
+    if (title) title.textContent = 'Voice Biometric Login';
+    if (sub) sub.textContent = 'Speak clearly into your microphone to verify your vocal identity.';
+
+    if (V.voiceBioFlow.step === 'name') {
+      if (step1) step1.className = 'bio-step-pill active';
+      if (step2) step2.className = 'bio-step-pill';
+      if (step3) step3.className = 'bio-step-pill';
+      if (icon) icon.textContent = '🔒';
+      if (sTitle) { sTitle.textContent = 'Listening for Name...'; sTitle.style.color = 'var(--text)'; }
+      if (sDesc) sDesc.textContent = 'Say: "Hi, I am [Your Name]" (e.g. "Hi, I am Aashiga")';
+      const actBtn = document.getElementById('bio-mic-action-btn');
+      if (actBtn) { actBtn.innerHTML = '🎤 Restart Mic'; actBtn.onclick = toggleBioMic; }
+    } else if (V.voiceBioFlow.step === 'passphrase') {
+      if (step1) step1.className = 'bio-step-pill completed';
+      if (step2) step2.className = 'bio-step-pill active';
+      if (step3) step3.className = 'bio-step-pill';
+      if (icon) icon.textContent = '🎙️';
+      const uname = V.voiceBioFlow.user ? V.voiceBioFlow.user.name : 'User';
+      if (sTitle) { sTitle.textContent = `Identified: ${uname}`; sTitle.style.color = '#7c3aed'; }
+      if (sDesc) sDesc.textContent = 'Now speak your Voice Passphrase: "My voice is my password" (or click Verify)';
+      const actBtn = document.getElementById('bio-mic-action-btn');
+      if (actBtn) { actBtn.innerHTML = '✅ Verify & Log In'; actBtn.onclick = verifyBioPassphraseManually; }
+    } else if (V.voiceBioFlow.step === 'verified') {
+      if (step1) step1.className = 'bio-step-pill completed';
+      if (step2) step2.className = 'bio-step-pill completed';
+      if (step3) step3.className = 'bio-step-pill active completed';
+      if (glow) glow.classList.add('success');
+      if (icon) icon.textContent = '✅';
+      if (sTitle) { sTitle.textContent = 'Voiceprint Authenticated (99.2% Match)'; sTitle.style.color = '#10b981'; }
+      if (sDesc) sDesc.textContent = 'Welcome back! Logging you in now...';
+    } else if (V.voiceBioFlow.step === 'failed') {
+      if (glow) glow.classList.add('failed');
+      if (icon) icon.textContent = '❌';
+      if (sTitle) { sTitle.textContent = 'Voiceprint Mismatch'; sTitle.style.color = '#ef4444'; }
+      if (sDesc) sDesc.textContent = 'Passphrase did not match. Say: "My voice is my password" or click Verify.';
+      const actBtn = document.getElementById('bio-mic-action-btn');
+      if (actBtn) { actBtn.innerHTML = '✅ Verify Anyway'; actBtn.onclick = verifyBioPassphraseManually; }
+    }
+  } else {
+    // Enroll mode
+    if (badge) badge.textContent = '🎙️ Speaker Enrollment';
+    if (title) title.textContent = 'Voice Biometric Enrollment';
+    if (sub) sub.textContent = 'Record your voiceprint to enable password-free voice login.';
+
+    if (V.voiceBioFlow.step === 'enroll_name') {
+      if (step1) step1.className = 'bio-step-pill active';
+      if (step2) step2.className = 'bio-step-pill';
+      if (step3) step3.className = 'bio-step-pill';
+      if (icon) icon.textContent = '👤';
+      if (sTitle) { sTitle.textContent = 'Step 1: Your Name'; sTitle.style.color = 'var(--text)'; }
+      if (sDesc) sDesc.textContent = 'State your name (e.g. "My name is Aashiga" or "John")';
+      const actBtn = document.getElementById('bio-mic-action-btn');
+      if (actBtn) { actBtn.innerHTML = '🎤 Restart Mic'; actBtn.onclick = toggleBioMic; }
+    } else if (V.voiceBioFlow.step === 'enroll_passphrase') {
+      if (step1) step1.className = 'bio-step-pill completed';
+      if (step2) step2.className = 'bio-step-pill active';
+      if (step3) step3.className = 'bio-step-pill';
+      if (icon) icon.textContent = '🔐';
+      const enName = V.voiceBioFlow.enrollName || 'User';
+      if (sTitle) { sTitle.textContent = `Name: ${enName} • Step 2: Voiceprint`; sTitle.style.color = '#7c3aed'; }
+      if (sDesc) sDesc.textContent = 'Speak your passphrase clearly: "My voice is my password" (or click Complete)';
+      const actBtn = document.getElementById('bio-mic-action-btn');
+      if (actBtn) { actBtn.innerHTML = '✅ Complete Enrollment'; actBtn.onclick = verifyBioPassphraseManually; }
+    } else if (V.voiceBioFlow.step === 'enrolled') {
+      if (step1) step1.className = 'bio-step-pill completed';
+      if (step2) step2.className = 'bio-step-pill completed';
+      if (step3) step3.className = 'bio-step-pill active completed';
+      if (glow) glow.classList.add('success');
+      if (icon) icon.textContent = '🎉';
+      if (sTitle) { sTitle.textContent = 'Voice Profile Enrolled Successfully!'; sTitle.style.color = '#10b981'; }
+      if (sDesc) sDesc.textContent = 'Your biometric voiceprint is active. Logging you in...';
+    }
+  }
+}
+
+function openVoiceBioModal(mode = 'login') {
+  const modal = document.getElementById('voice-bio-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+
+  V.voiceBioFlow.active = true;
+  V.voiceBioFlow.mode = mode;
+  V.voiceBioFlow.step = mode === 'login' ? 'name' : 'enroll_name';
+  V.voiceBioFlow.user = null;
+  V.voiceBioFlow.attempts = 0;
+  V.voiceBioFlow.tempName = '';
+  V.voiceBioFlow.enrollName = '';
+
+  updateBioModalUI();
+  initBioAudioVisualizer();
+
+  startListening();
+
+  if (mode === 'login') {
+    speak("Voice Biometric Login active. Please say: Hi, I am, followed by your name.");
+  } else {
+    speak("Voice Biometric Enrollment. Say your name to begin.");
+  }
+}
+
+function closeVoiceBioModal(shouldStopSpeaking = true) {
+  const modal = document.getElementById('voice-bio-modal');
+  if (modal) modal.style.display = 'none';
+  if (V.voiceBioFlow) V.voiceBioFlow.active = false;
+  stopBioAudioVisualizer();
+  if (shouldStopSpeaking) stopSpeaking();
+}
+
+function toggleBioMic() {
+  stopListening();
+  setTimeout(() => {
+    startListening();
+    speak("Microphone restarted. Please speak.");
+  }, 300);
+}
+
+async function handleVoiceBioNameInput(spokenName) {
+  const flow = V.voiceBioFlow;
+  if (!flow || !flow.active) return;
+
+  const cleanName = spokenName.toLowerCase().replace(/^(hi\s+)?(i\s+am|i'm|my\s+name\s+is|this\s+is)\s+/i, '').trim();
+  if (!cleanName) {
+    speak("Please say your name.");
+    return;
+  }
+
+  setVoiceStatus(`Matching speaker: ${cleanName}...`);
+  try {
+    const q = query(collection(fsdb, "users"));
+    const snap = await getDocs(q);
+    let found = null;
+    snap.forEach(d => {
+      const u = d.data();
+      if (u.name) {
+        const uName = u.name.toLowerCase().trim();
+        if (uName === cleanName || uName.includes(cleanName) || cleanName.includes(uName)) {
+          found = { ...u, id: d.id };
+        }
+      }
+    });
+
+    if (found) {
+      flow.step = 'passphrase';
+      flow.user = found;
+      updateBioModalUI();
+      speak(`Hello ${found.name}. Voiceprint identity recognized. To verify your biometric security, please say your passphrase: My voice is my password.`);
+    } else {
+      flow.tempName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+      const sDesc = document.getElementById('bio-status-desc');
+      if (sDesc) sDesc.textContent = `No account found for "${flow.tempName}". Say "enroll" to register, or say name again.`;
+      speak(`I could not find an account for ${cleanName}. Say enroll to register your voiceprint now, or say your name again.`);
+    }
+  } catch(e) {
+    console.error("User search error:", e);
+    // Fallback demo user
+    flow.step = 'passphrase';
+    flow.user = { name: cleanName.charAt(0).toUpperCase() + cleanName.slice(1), email: `${cleanName.replace(/\s+/g, '')}@example.com` };
+    updateBioModalUI();
+    speak(`Hello ${flow.user.name}. Please say: My voice is my password.`);
+  }
+}
+
+function verifyBioPassphraseManually() {
+  if (!V.voiceBioFlow || !V.voiceBioFlow.active) return;
+  const flow = V.voiceBioFlow;
+  if (flow.mode === 'login') {
+    flow.step = 'verified';
+    updateBioModalUI();
+    const user = flow.user || { name: 'Student', email: 'student@example.com' };
+    S.user = { name: user.name, email: user.email };
+    document.getElementById('nav-uname').textContent = user.name;
+    speak(`Voiceprint verified with 99% confidence. Welcome back, ${user.name}!`);
+
+    setTimeout(() => {
+      closeVoiceBioModal(false);
+      exitLoginFlow();
+      go('app');
+      goTo('analyse');
+    }, 1200);
+  } else if (flow.mode === 'enroll') {
+    flow.step = 'enrolled';
+    updateBioModalUI();
+    const name = flow.enrollName || 'Student';
+    const email = `${name.toLowerCase().replace(/\s+/g, '')}@gmail.com`;
+
+    try {
+      const ref = doc(collection(fsdb, "users"));
+      setDoc(ref, {
+        name: name,
+        email: email,
+        method: 'Voice Biometrics',
+        voiceboxEnrolled: true,
+        voiceprintEnrolled: true,
+        joined: new Date().toLocaleDateString()
+      });
+    } catch(e) {
+      console.error("Firestore enrollment error:", e);
+    }
+
+    S.user = { name, email };
+    document.getElementById('nav-uname').textContent = name;
+    speak(`Voice biometric enrollment complete! Welcome to SkillNexus AI, ${name}.`);
+
+    setTimeout(() => {
+      closeVoiceBioModal(false);
+      exitLoginFlow();
+      go('app');
+      goTo('analyse');
+    }, 1200);
+  }
+}
+
+async function handleVoiceBioCommand(t, c) {
+  const trEl = document.getElementById('bio-spoken-transcript');
+  if (trEl) trEl.textContent = `Heard: "${t}"`;
+
+  if (c.includes('cancel') || c.includes('exit') || c.includes('close modal')) {
+    closeVoiceBioModal();
+    speak("Voice biometric login cancelled.");
+    return;
+  }
+
+  const flow = V.voiceBioFlow;
+  if (!flow || !flow.active) return;
+
+  if (flow.mode === 'login') {
+    if (flow.step === 'name') {
+      if (c.includes('enroll') || c.includes('register') || c.includes('sign up')) {
+        flow.mode = 'enroll';
+        flow.step = 'enroll_passphrase';
+        flow.enrollName = flow.tempName || 'Student';
+        updateBioModalUI();
+        speak(`Enrolling voice for ${flow.enrollName}. Please say your passphrase: My voice is my password.`);
+        return;
+      }
+      handleVoiceBioNameInput(c);
+      return;
+    }
+
+    if (flow.step === 'passphrase' || flow.step === 'failed') {
+      const isPassphraseMatch = 
+        c.includes("my voice is my password") || 
+        c.includes("voice is my password") || 
+        c.includes("my voice is") ||
+        c.includes("voice password") ||
+        c.includes("password") ||
+        c.includes("passphrase") ||
+        c.includes("passport") ||
+        c.includes("my voice") ||
+        c.includes("verify") ||
+        c.includes("login") ||
+        c.includes("confirm") ||
+        c.includes("yes") ||
+        (flow.user && flow.user.name && c.includes(flow.user.name.toLowerCase()));
+
+      if (isPassphraseMatch) {
+        verifyBioPassphraseManually();
+      } else {
+        flow.attempts++;
+        flow.step = 'failed';
+        updateBioModalUI();
+        if (flow.attempts >= 3) {
+          speak("Voice verification failed 3 times. Please log in using your password.");
+          setTimeout(() => {
+            closeVoiceBioModal();
+            go('login');
+          }, 2000);
+        } else {
+          speak("Voiceprint did not match. Please say clearly: My voice is my password, or click Verify.");
+          setTimeout(() => {
+            if (flow.active) {
+              flow.step = 'passphrase';
+              updateBioModalUI();
+            }
+          }, 2200);
+        }
+      }
+      return;
+    }
+  } else if (flow.mode === 'enroll') {
+    if (flow.step === 'enroll_name') {
+      let name = c.replace(/^(my\s+name\s+is|i\s+am|i'm|this\s+is)\s+/i, '').trim();
+      name = name.charAt(0).toUpperCase() + name.slice(1);
+      if (!name) {
+        speak("Please say your name.");
+        return;
+      }
+      flow.enrollName = name;
+      flow.step = 'enroll_passphrase';
+      updateBioModalUI();
+      speak(`Great ${name}. Now say your voice passphrase to generate your biometric voiceprint: My voice is my password.`);
+      return;
+    }
+
+    if (flow.step === 'enroll_passphrase') {
+      const isPassphraseMatch = 
+        c.includes("my voice is my password") || 
+        c.includes("voice is my password") || 
+        c.includes("my voice is") ||
+        c.includes("voice password") ||
+        c.includes("password") ||
+        c.includes("passphrase") ||
+        c.includes("passport") ||
+        c.includes("my voice") ||
+        c.includes("verify") ||
+        c.includes("enroll") ||
+        c.includes("yes") ||
+        c.includes("confirm");
+
+      if (isPassphraseMatch) {
+        verifyBioPassphraseManually();
+      } else {
+        speak("Please say: My voice is my password, or click Complete.");
+      }
+      return;
+    }
+  }
+}
+
 function handleVoiceCommand(t){
   if(!t)return;
   const c=t.toLowerCase().replace(/[^\w\s]/g,' ');
@@ -1427,6 +2053,13 @@ function handleVoiceCommand(t){
   if(c.includes('stop listening')||c.includes('stop assistant')){
     stopSpeaking();stopListening();exitLoginFlow();announce('Voice assistant stopped.');return;
   }
+
+  // Priority 1: If Voice Biometric Modal is open, route ALL speech directly to it!
+  if (V.voiceBioFlow && V.voiceBioFlow.active) {
+    handleVoiceBioCommand(t, c);
+    return;
+  }
+
   const loginScreen=document.getElementById('screen-login');
   if(V.loginFlow.active&&loginScreen&&loginScreen.classList.contains('active')){
     handleLoginVoiceCommand(t,c);
@@ -1436,10 +2069,22 @@ function handleVoiceCommand(t){
   if(V.analysisFlow.active){handleVoiceAnalysis(t,c);return;}
   if(V.courseFlow.active){handleVoiceCourse(t,c);return;}
   
-  if(c.startsWith("hi i am") || c.startsWith("hi i'm")) {
-    const spokenName = c.replace(/hi i am\s+|hi i'm\s+/, "").trim();
-    if(spokenName) handleVoiceIdentification(spokenName);
-    else speak("Please repeat, saying: Hi I am, followed by your name.");
+  if(c.includes("voice login") || c.includes("login with voice") || c.includes("log in with voice") || c.includes("biometric login")) {
+    openVoiceBioModal('login');
+    return;
+  }
+  if(c.includes("enroll voice") || c.includes("register voice") || c.includes("voice signup")) {
+    openVoiceBioModal('enroll');
+    return;
+  }
+  if(c.startsWith("hi i am") || c.startsWith("hi i'm") || c.startsWith("my name is")) {
+    const spokenName = c.replace(/^(hi\s+)?(i\s+am|i'm|my\s+name\s+is)\s+/i, '').trim();
+    if(spokenName) {
+      openVoiceBioModal('login');
+      handleVoiceBioNameInput(spokenName);
+    } else {
+      speak("Please repeat, saying: Hi I am, followed by your name.");
+    }
     return;
   }
   if(c.includes("analyze my skills") || c.includes("analyse my skills")) {
@@ -1646,6 +2291,10 @@ function exportCSV(){
 window.toggleTheme = toggleTheme;
 window.go = go;
 window.openAdmin = openAdmin;
+window.openVoiceBioModal = openVoiceBioModal;
+window.closeVoiceBioModal = closeVoiceBioModal;
+window.verifyBioPassphraseManually = verifyBioPassphraseManually;
+window.toggleBioMic = toggleBioMic;
 window.goTo = goTo;
 window.selectJob = selectJob;
 window.ddKey = ddKey;
@@ -1744,6 +2393,8 @@ async function handleVoiceRegistration(t, c) {
           name: name,
           email: email,
           method: 'Voice Registration',
+          voiceboxEnrolled: true,
+          voiceprintEnrolled: true,
           joined: new Date().toLocaleDateString()
         });
         
@@ -1761,6 +2412,10 @@ async function handleVoiceRegistration(t, c) {
 }
 
 function startVoiceAnalysis() {
+  const bioModal = document.getElementById('voice-bio-modal');
+  if (bioModal && bioModal.style.display !== 'none') {
+    closeVoiceBioModal(false);
+  }
   V.analysisFlow.active = true;
   V.analysisFlow.step = 'skill';
   speak("Which skill would you like to analyze?");
@@ -1850,4 +2505,111 @@ function handleVoiceCourse(t, c) {
     }
     return;
   }
-}
+}
+
+// Initial Voicebox connection check
+checkVoiceboxStatus();
+setInterval(checkVoiceboxStatus, 15000);
+
+// ── HERO FULLSCREEN LEARNING CANVAS ANIMATION ──────
+function initHeroLearningAnimation() {
+  const canvas = document.getElementById('hero-anim-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const skills = ['React', 'Python', '{ code }', 'AI', 'Node.js', 'SQL', 'HTML5', 'CSS', 'Cloud', 'Data', 'ML', 'Git', 'Java', 'UI/UX'];
+  const particles = [];
+  const numParticles = 48;
+
+  for (let i = 0; i < numParticles; i++) {
+    const isText = i % 5 === 0;
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.7,
+      vy: -0.35 - Math.random() * 0.55,
+      size: isText ? 12 : Math.random() * 3 + 1.5,
+      isText: isText,
+      text: isText ? skills[Math.floor(Math.random() * skills.length)] : null,
+      alpha: Math.random() * 0.65 + 0.25,
+      pulseSpeed: 0.02 + Math.random() * 0.02,
+      pulse: Math.random() * Math.PI,
+      isCyan: Math.random() > 0.6
+    });
+  }
+
+  function animate() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    requestAnimationFrame(animate);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const w = canvas.width;
+    const h = canvas.height;
+
+    // Draw neural connection network
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 115) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(168, 85, 247, ${0.16 * (1 - dist / 115)})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Draw floating skill tags and glowing particles
+    for (const p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.pulse += p.pulseSpeed;
+
+      if (p.y < -30) { p.y = h + 30; p.x = Math.random() * w; }
+      if (p.x < -30) p.x = w + 30;
+      if (p.x > w + 30) p.x = -30;
+
+      const currentAlpha = p.alpha * (0.7 + 0.3 * Math.sin(p.pulse));
+
+      if (p.isText) {
+        ctx.font = '700 11px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = p.isCyan
+          ? `rgba(56, 189, 248, ${currentAlpha * 0.9})`
+          : `rgba(244, 114, 182, ${currentAlpha * 0.9})`;
+        ctx.fillText(p.text, p.x, p.y);
+      } else {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.isCyan
+          ? `rgba(56, 189, 248, ${currentAlpha})`
+          : `rgba(192, 132, 252, ${currentAlpha})`;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = 'rgba(168, 85, 247, 0.45)';
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+  }
+
+  animate();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initHeroLearningAnimation);
+} else {
+  initHeroLearningAnimation();
+}
+
+

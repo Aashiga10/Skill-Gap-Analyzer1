@@ -48,7 +48,7 @@ router.post("/", upload.single("resume"), async (req, res) => {
                 "Authorization": `Bearer ${process.env.NVIDIA_LLM_API_KEY || process.env.NVIDIA_API_KEY}`
             },
             body: JSON.stringify({
-                model: "nvidia/nemotron-4-340b-instruct",
+                model: "nvidia/nemotron-3-super-120b-a12b",
                 messages: [{ role: "user", content: aiPrompt }]
             })
         });
