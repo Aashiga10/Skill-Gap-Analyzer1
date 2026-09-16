@@ -45,7 +45,7 @@ const JOB_LIST=Object.keys(JOBS);
 // ── COURSES DATABASE ──────────────────────────────
 const COURSE_DB={
   "Web Developer":[
-    {skill:"HTML",name:"HTML & CSS Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=mU6anWqZJcc",duration:"6 hrs"},
+    {skill:"HTML",name:"HTML & CSS Full Course for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=a_iQb1lnAEQ",duration:"5 hrs"},
     {skill:"HTML",name:"Responsive Web Design Certification",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/2022/responsive-web-design/",duration:"15 hrs"},
     {skill:"CSS",name:"CSS Tutorial – Zero to Hero",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=1Rs2ND1ryYc",duration:"5 hrs"},
     {skill:"JavaScript",name:"JavaScript Algorithms and Data Structures",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/",duration:"20 hrs"},
@@ -53,7 +53,7 @@ const COURSE_DB={
     {skill:"React",name:"Front End Development Libraries",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/front-end-development-libraries/",duration:"18 hrs"},
     {skill:"React",name:"React JS Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=bMknfKXIFA8",duration:"10 hrs"},
     {skill:"Node.js",name:"Back End Development and APIs",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/back-end-development-and-apis/",duration:"15 hrs"},
-    {skill:"Node.js",name:"Node.js & Express Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=Oe421EPjeEQ",duration:"8 hrs"},
+    {skill:"Node.js",name:"Node.js & Express Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=J4aMJ53PQsk",duration:"8 hrs"},
     {skill:"Git",name:"Git and GitHub for Beginners",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=RGOj5yH7evk",duration:"3 hrs"},
   ],
   "Full Stack Developer":[
@@ -68,7 +68,7 @@ const COURSE_DB={
     {skill:"Git",name:"Git & GitHub Crash Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=SWYqp7iY_Tc",duration:"2 hrs"},
   ],
   "Data Analyst":[
-    {skill:"Excel",name:"Microsoft Excel – Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=Vl0H-qTcleg",duration:"6 hrs"},
+    {skill:"Excel",name:"Microsoft Excel – Full Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=Vl0H-qTclOg&t=9s",duration:"2 hrs"},
     {skill:"SQL",name:"SQL Tutorial – Full Database Course",platform:"YouTube",type:"free",url:"https://www.youtube.com/watch?v=HXV3zeQKqGY",duration:"4 hrs"},
     {skill:"SQL",name:"Relational Database Certification",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/relational-database/",duration:"20 hrs"},
     {skill:"Python",name:"Scientific Computing with Python",platform:"freeCodeCamp",type:"free",url:"https://www.freecodecamp.org/learn/scientific-computing-with-python/",duration:"15 hrs"},
@@ -229,15 +229,64 @@ function go(id){
   if(id==='app') initApp();
   focusScreenHead(scr);
 
-  // Spoken screen announcements for blind accessibility
+  if (id === 'login') {
+    switchLoginTab('bio');
+    const isVoiceActive = Boolean(
+      (V && (V.enabled || V.isBlindUser)) ||
+      (V && V.voice && V.voice.enabled) ||
+      (window.voiceAssistant && window.voiceAssistant.initialized)
+    );
+    if (isVoiceActive && (!window.navigationTools || !window.navigationTools.isNavigating)) {
+      const msg = "Opened login screen. Say: 'Hi, I am' followed by your name to log in with voice, or say 'continue with Google'.";
+      if (window.speak) {
+        window.speak(msg, () => {
+          if (window.startListening) window.startListening();
+        });
+      }
+    }
+    return;
+  }
+
+  // Spoken screen announcements for blind accessibility (only if not already speaking)
   const screenDescriptions = {
-    landing: 'Home screen. Say: Voice login, to sign in with your voice, or say: Sign up.',
-    login: 'Login screen. Say: Voice login, to verify your voice, or say: Hi I am, followed by your name.',
-    signup: 'Sign up screen. Say: Enroll voice, to register your voice.',
+    landing: 'Home screen. SkillNexus AI.',
+    signup: 'Sign up screen.',
     about: 'About screen. SkillNexus AI bridges your career skill gaps.'
   };
-  if(screenDescriptions[id]){
+  if(screenDescriptions[id] && V && V.isBlindUser && (!window.speechSynthesisWrapper || !window.speechSynthesisWrapper.isPlaying)){
     announce(screenDescriptions[id]);
+  }
+}
+
+function switchLoginTab(tab) {
+  const bioBtn = document.getElementById('tab-btn-bio');
+  const passBtn = document.getElementById('tab-btn-pass');
+  const bioView = document.getElementById('login-bio-view');
+  const passView = document.getElementById('login-pass-view');
+
+  if (tab === 'bio') {
+    if (bioBtn) { bioBtn.classList.add('active'); bioBtn.setAttribute('aria-selected', 'true'); }
+    if (passBtn) { passBtn.classList.remove('active'); passBtn.setAttribute('aria-selected', 'false'); }
+    if (bioView) bioView.style.display = 'block';
+    if (passView) passView.style.display = 'none';
+
+    // Activate voice biometric session for primary login view
+    if (!V.voiceBioFlow) V.voiceBioFlow = {};
+    V.voiceBioFlow.active = true;
+    V.voiceBioFlow.mode = 'login';
+    if (!V.voiceBioFlow.step || V.voiceBioFlow.step === 'verified' || V.voiceBioFlow.step === 'failed') {
+      V.voiceBioFlow.step = 'name';
+    }
+    updateBioModalUI();
+    initBioAudioVisualizer();
+  } else {
+    if (passBtn) { passBtn.classList.add('active'); passBtn.setAttribute('aria-selected', 'true'); }
+    if (bioBtn) { bioBtn.classList.remove('active'); bioBtn.setAttribute('aria-selected', 'false'); }
+    if (passView) passView.style.display = 'block';
+    if (bioView) bioView.style.display = 'none';
+
+    const emailIn = document.getElementById('login-email');
+    if (emailIn) emailIn.focus();
   }
 }
 
@@ -407,11 +456,16 @@ function renderTags(){
 }
 
 // ── IN-APP NAV ────────────────────────────────────
-function goTo(page){
+async function goTo(page){
   const bioModal = document.getElementById('voice-bio-modal');
   if (bioModal && bioModal.style.display !== 'none') {
     closeVoiceBioModal(false);
   }
+  
+  if (window.voiceAssistant) {
+      await window.voiceAssistant.cancelCurrentFlow();
+  }
+
   if(!V.suppressHistory){
     const cur=document.querySelector('.page.active');
     const curId=cur?cur.id.replace('page-',''):'analyse';
@@ -434,12 +488,9 @@ function goTo(page){
   if(page==='profile')renderProfile();
   const head=pg.querySelector('h1');
   if(head){head.setAttribute('tabindex','-1');head.focus({preventScroll:true});}
-  announce('Opened ' + page + ' section.');
-  if(page==='analyse'&&S.user&&V.listening&&!V.analyseHintShown){
-    V.analyseHintShown=true;
-    setTimeout(()=>{
-      if(V.listening)announce('You can say find my dream job to choose a dream job from your interests, or say my dream job is, followed by a job name.');
-    },800);
+  
+  if (V && V.isBlindUser && (!window.speechSynthesisWrapper || !window.speechSynthesisWrapper.isPlaying)) {
+      announce('Opened ' + page + ' section.');
   }
 }
 
@@ -559,7 +610,9 @@ function showResults(){
     ?S.skillsHave.map(s=>`<div class="skill-item"><span aria-hidden="true" style="color:#10b981;font-size:1.1rem">✓</span>${s}</div>`).join('')
     :'<div style="color:var(--muted);font-size:.88rem">No matching skills found yet.</div>';
   document.getElementById('r-need').innerHTML=S.skillsNeed.map(s=>`<div class="skill-item"><span aria-hidden="true" style="color:#ef4444;font-size:1.1rem">✕</span>${s}</div>`).join('');
-  announce(`Analysis complete. Match score ${S.matchScore} percent. Skills you have: ${S.skillsHave.join(', ')||'none'}. Skills to learn: ${S.skillsNeed.join(', ')||'none'}.`);
+  if (V && V.isBlindUser && (!window.speechSynthesisWrapper || !window.speechSynthesisWrapper.isPlaying)) {
+    announce(`Analysis complete. Match score ${S.matchScore} percent. Skills you have: ${S.skillsHave.join(', ')||'none'}. Skills to learn: ${S.skillsNeed.join(', ')||'none'}.`);
+  }
 }
 
 // ── ROADMAP ──────────────────────────────────────
@@ -662,25 +715,234 @@ function renderCourses(){
   announce(`Course recommendations loaded for ${S.dreamJob}.`);
 }
 function setFilter(f){S.activeSkillFilter=f;renderCourses();}
+
+function getYouTubeId(url){
+  if(!url) return null;
+  const match = url.match(/(?:v=|\/embed\/|\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+
+let currentPlayingCourse = null;
+let currentPlayingVideoId = null;
+
+function playEmbeddedCourse(name, url, skill, duration){
+  const vId = getYouTubeId(url);
+  if(!vId){
+    if(url) window.open(url, '_blank');
+    return;
+  }
+
+  currentPlayingCourse = name;
+  currentPlayingVideoId = vId;
+
+  // Switch to courses page if not already there
+  if(typeof goTo === 'function'){
+    const appScreen = document.getElementById('screen-app');
+    if(appScreen && !appScreen.classList.contains('active') && typeof go === 'function'){
+      go('app');
+    }
+    const curPage = document.querySelector('.page.active');
+    if(!curPage || curPage.id !== 'page-courses'){
+      goTo('courses');
+    }
+  }
+
+  const playerCard = document.getElementById('yt-clone-player');
+  const iframe = document.getElementById('yt-embedded-iframe');
+  const titleEl = document.getElementById('yt-clone-title');
+  const durationBadge = document.getElementById('yt-duration-badge');
+  const extLink = document.getElementById('yt-external-link');
+  const notesCourseName = document.getElementById('yt-notes-course-name');
+  const notesTextarea = document.getElementById('yt-notes-textarea');
+
+  if(titleEl) titleEl.textContent = name;
+  if(durationBadge) durationBadge.textContent = `• ${skill || ''} • ${duration || ''}`;
+  if(extLink) extLink.href = url || `https://www.youtube.com/watch?v=${vId}`;
+  if(notesCourseName) notesCourseName.textContent = name;
+
+  if(notesTextarea){
+    try{
+      notesTextarea.value = localStorage.getItem(`yt_notes_${name}`) || '';
+    }catch(e){}
+  }
+
+  updatePlayerCompletionButton(name);
+
+  if(iframe){
+    iframe.src = `https://www.youtube-nocookie.com/embed/${vId}?autoplay=1&enablejsapi=1&rel=0&modestbranding=1`;
+  }
+
+  if(playerCard){
+    playerCard.style.display = 'block';
+    playerCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  document.querySelectorAll('.course-card').forEach(card=>{
+    if(card.getAttribute('data-voice-label') === name.toLowerCase()){
+      card.classList.add('is-playing');
+    } else {
+      card.classList.remove('is-playing');
+    }
+  });
+
+  renderUpNextList(name);
+
+  if(typeof speak === 'function'){
+    speak(`Playing ${name} inside SkillNexus.`);
+  }
+
+  if(window.youtubeTools){
+    window.youtubeTools.isPlayingVideo = true;
+    window.youtubeTools.currentVideoId = vId;
+  }
+}
+
+function closeEmbeddedCourse(){
+  const playerCard = document.getElementById('yt-clone-player');
+  const iframe = document.getElementById('yt-embedded-iframe');
+  if(iframe) iframe.src = '';
+  if(playerCard) playerCard.style.display = 'none';
+  currentPlayingCourse = null;
+  currentPlayingVideoId = null;
+  document.querySelectorAll('.course-card').forEach(c=>c.classList.remove('is-playing'));
+  if(window.youtubeTools){
+    window.youtubeTools.isPlayingVideo = false;
+  }
+}
+
+function toggleTheaterMode(){
+  const wrapper = document.getElementById('yt-video-frame-container');
+  if(wrapper) wrapper.classList.toggle('theater');
+}
+
+function toggleNotesDrawer(){
+  const drawer = document.getElementById('yt-notes-drawer');
+  if(drawer){
+    const isHidden = drawer.style.display === 'none';
+    drawer.style.display = isHidden ? 'block' : 'none';
+    if(isHidden) document.getElementById('yt-notes-textarea')?.focus();
+  }
+}
+
+function toggleCourseLike(){
+  const btn = document.getElementById('yt-like-btn');
+  const countEl = document.getElementById('yt-like-count');
+  if(btn && countEl){
+    const isLiked = btn.classList.toggle('liked');
+    let count = parseFloat(countEl.textContent) || 1.4;
+    count = isLiked ? (count + 0.1).toFixed(1) : (count - 0.1).toFixed(1);
+    countEl.textContent = count + 'K';
+    if(typeof showToast === 'function'){
+      showToast(isLiked ? 'Added to liked courses! 👍' : 'Removed from liked courses.');
+    }
+  }
+}
+
+function shareCurrentCourse(){
+  const url = currentPlayingVideoId ? `https://youtu.be/${currentPlayingVideoId}` : window.location.href;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(()=>{
+      if(typeof showToast === 'function') showToast('Course link copied to clipboard! 🔗');
+      else alert('Course link copied!');
+    });
+  }
+}
+
+function toggleCurrentCourseDone(){
+  if(currentPlayingCourse){
+    toggleDone(currentPlayingCourse);
+    updatePlayerCompletionButton(currentPlayingCourse);
+  }
+}
+
+function updatePlayerCompletionButton(name){
+  const btn = document.getElementById('yt-complete-btn');
+  const text = document.getElementById('yt-complete-text');
+  if(btn && text && window.S){
+    const isDone = S.completedCourses.has(name);
+    if(isDone){
+      btn.style.background = 'linear-gradient(135deg, #7c3aed, #4f46e5)';
+      text.textContent = 'Skill Learned! ✅';
+    }else{
+      btn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+      text.textContent = 'Mark as Completed ✅';
+    }
+  }
+}
+
+function renderUpNextList(currentName){
+  const container = document.getElementById('yt-up-next-list');
+  if(!container) return;
+
+  const jobKey = JOB_LIST.find(j=>j.toLowerCase()===(S.dreamJob||'').toLowerCase())||null;
+  const courses = jobKey && COURSE_DB[jobKey] ? COURSE_DB[jobKey] : [];
+  const otherCourses = courses.filter(c=>c.name !== currentName);
+
+  if(otherCourses.length === 0){
+    container.innerHTML = '<div style="color:#94a3b8;font-size:0.8rem">No additional courses in this roadmap.</div>';
+    return;
+  }
+
+  container.innerHTML = otherCourses.slice(0, 8).map(c=>{
+    const vId = getYouTubeId(c.url) || 'jS4aFq5-91M';
+    const thumb = `https://img.youtube.com/vi/${vId}/mqdefault.jpg`;
+    const escapedName = c.name.replace(/'/g, "\\'");
+    return `
+      <div class="yt-mini-card" onclick="playEmbeddedCourse('${escapedName}', '${c.url}', '${c.skill}', '${c.duration}')">
+        <img class="yt-mini-thumb" src="${thumb}" alt="${c.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=300'"/>
+        <div class="yt-mini-name">${c.name}</div>
+        <div class="yt-mini-meta">${c.skill} • ${c.duration}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Auto-save lecture notes
+if(typeof document !== 'undefined'){
+  document.addEventListener('input', (e) => {
+    if (e.target && e.target.id === 'yt-notes-textarea' && currentPlayingCourse) {
+      try {
+        localStorage.setItem(`yt_notes_${currentPlayingCourse}`, e.target.value);
+        const indicator = document.getElementById('yt-notes-saved');
+        if (indicator) {
+          indicator.textContent = 'Saved ✓';
+          clearTimeout(window._notesTimer);
+          window._notesTimer = setTimeout(() => {
+            indicator.textContent = 'Auto-saved ✓';
+          }, 1200);
+        }
+      } catch(err) {}
+    }
+  });
+}
+
 function showCourseList(courses){
   const filtered=S.activeSkillFilter==='All'?courses:courses.filter(c=>c.skill===S.activeSkillFilter);
   const icons={YouTube:'▶️',freeCodeCamp:'🏕',Udemy:'📘',Coursera:'🎓'};
   document.getElementById('c-list').innerHTML=filtered.map((c,i)=>{
     const done=S.completedCourses.has(c.name);
-    return `<div class="course-card">
-      <div class="c-icon">${icons[c.platform]||'📖'}</div>
+    const vId=getYouTubeId(c.url);
+    const thumb=vId ? `https://img.youtube.com/vi/${vId}/mqdefault.jpg` : '';
+    const isPlaying = currentPlayingCourse === c.name;
+    const escapedName = c.name.replace(/'/g, "\\'");
+
+    return `<div class="course-card${isPlaying ? ' is-playing' : ''}" data-voice-label="${c.name.toLowerCase()}">
+      ${thumb ? `<img class="course-card-thumb" src="${thumb}" alt="${c.name}" loading="lazy" onclick="playEmbeddedCourse('${escapedName}', '${c.url}', '${c.skill}', '${c.duration}')" style="cursor:pointer" onerror="this.style.display='none'"/>` : `<div class="c-icon">${icons[c.platform]||'📖'}</div>`}
       <div class="c-info">
-        <div class="c-name">${c.name}</div>
+        <div class="c-name" onclick="playEmbeddedCourse('${escapedName}', '${c.url}', '${c.skill}', '${c.duration}')" style="cursor:pointer" title="Click to watch inside website">${c.name}</div>
         <div class="c-meta">
           <span class="badge ${c.type==='free'?'b-free':'b-paid'}">${c.type==='free'?'FREE':'PAID'}</span>
           <span class="badge b-yt">${c.platform}</span>
           <span style="font-size:.76rem;color:var(--muted)">• ${c.skill} • ${c.duration}</span>
         </div>
         <div class="c-actions">
-          <a href="${c.url}" target="_blank" rel="noopener" style="text-decoration:none"><button class="btn btn-p btn-sm">Start Learning ↗</button></a>
-          <button class="${done?'btn-g':''}" style="${done?'':'background:var(--social-bg);border:1.5px solid var(--inp-b);color:#7c3aed;padding:7px 14px;font-size:.78rem;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600'}" onclick="toggleDone('${c.name}')">
+          <button class="btn btn-p btn-sm" onclick="playEmbeddedCourse('${escapedName}', '${c.url}', '${c.skill}', '${c.duration}')">
+            ▶️ Watch in Website
+          </button>
+          <button class="${done?'btn-g':''}" style="${done?'':'background:var(--social-bg);border:1.5px solid var(--inp-b);color:#7c3aed;padding:7px 14px;font-size:.78rem;border-radius:8px;cursor:pointer;font-family:inherit;font-weight:600'}" onclick="toggleDone('${escapedName}'); updatePlayerCompletionButton('${escapedName}');">
             ${done?'Skill Learned! ✅':'Mark as Completed ✅'}
           </button>
+          <a href="${c.url}" target="_blank" rel="noopener" style="text-decoration:none" title="Open directly on YouTube (optional)"><button class="btn btn-o btn-sm" style="padding:7px 10px;font-size:.76rem">↗</button></a>
         </div>
       </div>
     </div>`;
@@ -846,36 +1108,37 @@ function showToast(msg,type){
 }
 
 // ── VOICE ASSISTANT (Web Speech API) ──────────────
-const V={
-  enabled:true,
-  rate:1,
-  listening:false,
-  handsFree:true,
-  continuousListening:true,
-  isSpeaking:false,
-  autoWelcomeTriggered:false,
-  recognition:null,
-  lastSpoken:'',
-  pageHistory:[],
-  suppressHistory:false,
-  loginFlow:{active:false,step:'idle',email:''},
-  dreamFlow:{active:false,raw:'',pending:null},
-  interest:{active:false,stage:'idle',matches:[],introShown:false},
+const V = Object.assign(window.V || {}, {
+  enabled: true,
+  rate: 1.25,
+  listening: false,
+  handsFree: true,
+  continuousListening: true,
+  isSpeaking: false,
+  autoWelcomeTriggered: false,
+  recognition: null,
+  lastSpoken: '',
+  pageHistory: [],
+  suppressHistory: false,
+  loginFlow: { active: false, step: 'idle', email: '' },
+  dreamFlow: { active: false, raw: '', pending: null },
+  interest: { active: false, stage: 'idle', matches: [], introShown: false },
   registrationFlow: { active: false, step: 'idle', name: '', email: '', attempts: 0 },
   voiceBioFlow: { active: false, mode: 'login', step: 'name', user: null, attempts: 0, tempName: '', enrollName: '' },
-  voiceboxFlow: { active: false, mode: 'login', user: null },
   analysisFlow: { active: false, step: 'idle', skill: '', currentSkills: '', time: '' },
   courseFlow: { active: false, currentCourseIndex: 0 },
-  analyseHintShown:false
-};
+  analyseHintShown: false
+});
+window.V = V;
 try{
   const saved=JSON.parse(localStorage.getItem('skillsync_voice')||'{}');
-  if(typeof saved.enabled==='boolean')V.enabled=saved.enabled;
-  if(saved.rate)V.rate=parseFloat(saved.rate)||1;
+  if(saved.rate)V.rate=parseFloat(saved.rate)||1.25;
 }catch(e){}
+V.enabled = true;
+if (window.V && window.V.voice) window.V.voice.enabled = true;
 
 function speechSupported(){
-  return ('speechSynthesis' in window)||('SpeechRecognition' in window)||('webkitSpeechRecognition' in window);
+  return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 }
 function playAudioChime(type='listen'){
   try {
@@ -905,147 +1168,122 @@ function playAudioChime(type='listen'){
   } catch(e) {}
 }
 
-let currentVoiceboxAudio = null;
+function speak(text, onDone){
+  if(typeof text!=='string'||!text.trim()){
+    if(onDone) onDone();
+    return;
+  }
 
-async function checkVoiceboxStatus() {
-  try {
-    const res = await fetch("http://localhost:5000/api/voicebox/status");
-    if (res.ok) {
-      const data = await res.json();
-      const vbBadge = document.getElementById('voicebox-status-badge');
-      if (vbBadge) {
-        if (data.status === 'connected') {
-          const profileName = (data.profiles && data.profiles[0]) ? data.profiles[0].name : 'Active';
-          const isDownloading = data.tasks && data.tasks.downloads && data.tasks.downloads.some(d => d.status === 'downloading');
-          if (isDownloading) {
-            const dl = data.tasks.downloads.find(d => d.status === 'downloading');
-            const pct = Math.round(dl.progress || 0);
-            vbBadge.innerHTML = `🟢 Voicebox Active: <b>${profileName}</b> Voice<br><span style="font-size:0.7rem;opacity:0.85;">(AI Model downloading: ${pct}%)</span>`;
-          } else {
-            vbBadge.innerHTML = `🟢 Voicebox Connected: <b>${profileName}</b> Voice Clone`;
-          }
-          vbBadge.style.display = 'block';
-        } else {
-          vbBadge.style.display = 'none';
-        }
-      }
-    }
-  } catch (e) {}
-}
+  // Respect explicit mute toggle from checkbox
+  const voiceCb = document.getElementById('voice-enabled');
+  if(voiceCb && !voiceCb.checked && !V.blindCheckActive){
+    if(onDone) onDone();
+    return;
+  }
 
-function speak(text){
-  if(!V.enabled||typeof text!=='string'||!text.trim())return;
+  V.enabled = true;
+  if (window.V && window.V.voice) window.V.voice.enabled = true;
   try{
-    V.lastSpoken=text;
+    V.lastSpoken = text;
     V.isSpeaking = true;
-    stopSpeaking();
+    if (window.speechSynthesisWrapper && window.speechSynthesisWrapper.recordSpoken) {
+      window.speechSynthesisWrapper.recordSpoken(text);
+    }
     
-    // Temporarily pause speech recognition so mic doesn't catch the speaker's voice
-    if (V.recognition && V.listening) {
+    // Only pause recognition in manual mode - never during blind check or continuous hands-free mode
+    if (!V.blindCheckActive && !V.handsFree && !V.continuousListening && V.recognition && V.listening) {
       try { V.recognition.stop(); } catch(e){}
     }
 
-    const onDone = () => {
+    let doneCalled = false;
+    const safeOnDone = () => {
+      if (doneCalled) return;
+      doneCalled = true;
       V.isSpeaking = false;
-      if (currentVoiceboxAudio) {
-        currentVoiceboxAudio = null;
-      }
-      // After speech synthesis finishes, automatically restart listening for blind accessibility!
-      if (V.enabled && (V.handsFree || V.continuousListening)) {
-        setTimeout(() => {
-          if (!V.isSpeaking) {
-            startListening();
-          }
-        }, 300);
-      }
+      if (onDone) onDone();
     };
 
-    // Try Voicebox AI voice first via backend /api/tts
-    let voiceboxAttempted = false;
-    const voiceboxPromise = (async () => {
-      try {
-        const controller = new AbortController();
-        // Keep timeout snappy so there's no noticeable delay if Voicebox is busy or downloading
-        const timeoutId = setTimeout(() => controller.abort(), 3500);
-        const resp = await fetch("http://localhost:5000/api/tts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
+    // Safety watchdog in case browser speech synthesis stalls
+    const wordCount = (text || "").split(/\s+/).length;
+    const maxSpeechDuration = Math.min(12000, Math.max(3000, wordCount * 500));
+    const watchdog = setTimeout(safeOnDone, maxSpeechDuration);
 
-        if (resp.ok) {
-          const contentType = resp.headers.get("content-type") || "";
-          if (contentType.includes("audio") || contentType.includes("wav") || contentType.includes("octet-stream")) {
-            const blob = await resp.blob();
-            const audioUrl = URL.createObjectURL(blob);
-            currentVoiceboxAudio = new Audio(audioUrl);
-            currentVoiceboxAudio.playbackRate = V.rate || 1;
-            currentVoiceboxAudio.onended = () => {
-              URL.revokeObjectURL(audioUrl);
-              onDone();
-            };
-            currentVoiceboxAudio.onerror = () => {
-              URL.revokeObjectURL(audioUrl);
-              fallbackSpeech(text, onDone);
-            };
-            await currentVoiceboxAudio.play();
-            return true;
-          }
+    if (window.speechSynthesisWrapper) {
+      window.speechSynthesisWrapper.speak(text).then(() => {
+        clearTimeout(watchdog);
+        safeOnDone();
+        if (V.enabled && (V.handsFree || V.continuousListening || V.blindCheckActive)) {
+          setTimeout(() => { if (!V.isSpeaking && window.startListening) window.startListening(); }, 200);
         }
-      } catch (e) {}
-      return false;
-    })();
+      });
+      return;
+    }
 
-    voiceboxPromise.then(success => {
-      if (!success) {
-        fallbackSpeech(text, onDone);
+    if (!('speechSynthesis' in window)) {
+      V.isSpeaking = false;
+      if (onDone) onDone();
+      return;
+    }
+
+    speechSynthesis.cancel();
+    try { speechSynthesis.resume(); } catch(e){}
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    u.rate = V.rate || 1.25;
+    const voices = speechSynthesis.getVoices().filter(v => /en[-_]/i.test(v.lang));
+    const localVoices = voices.filter(v => v.localService === true);
+    const chosenVoice = localVoices.length > 0
+      ? (localVoices.find(v => /david|zira|mark|samantha|george|daniel/i.test(v.name)) || localVoices[0])
+      : (voices.length > 0 ? voices[0] : null);
+    if (chosenVoice) u.voice = chosenVoice;
+    u.onend = () => {
+      V.isSpeaking = false;
+      if (onDone) onDone();
+      if (V.enabled && (V.handsFree || V.continuousListening)) {
+        setTimeout(() => { if (!V.isSpeaking) startListening(); }, 300);
       }
-    });
-
+    };
+    u.onerror = () => {
+      V.isSpeaking = false;
+      if (u.voice) {
+        try {
+          const fallbackU = new SpeechSynthesisUtterance(text);
+          fallbackU.lang = 'en-US';
+          fallbackU.onend = () => { if (onDone) onDone(); };
+          speechSynthesis.speak(fallbackU);
+          return;
+        } catch(err){}
+      }
+      if (onDone) onDone();
+    };
+    speechSynthesis.speak(u);
   }catch(e){
     V.isSpeaking = false;
     console.error('speak error:',e);
-  }
-}
-
-function fallbackSpeech(text, onDone) {
-  if (!('speechSynthesis' in window)) {
-    if (onDone) onDone();
-    return;
-  }
-  try {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = V.rate;
-    u.pitch = 1;
-    const vs = speechSynthesis.getVoices().filter(v => /en[-_]/i.test(v.lang));
-    if (vs.length) u.voice = vs[0];
-    u.onend = onDone;
-    u.onerror = onDone;
-    speechSynthesis.speak(u);
-  } catch(e) {
-    if (onDone) onDone();
+    if(onDone) onDone();
   }
 }
 
 function stopSpeaking(){
-  if (currentVoiceboxAudio) {
-    try {
-      currentVoiceboxAudio.pause();
-      currentVoiceboxAudio.currentTime = 0;
-    } catch(e) {}
-    currentVoiceboxAudio = null;
+  V.isSpeaking = false;
+  if (window.speechSynthesisWrapper) {
+    window.speechSynthesisWrapper.bargeIn();
   }
   if('speechSynthesis' in window){try{speechSynthesis.cancel();}catch(e){}}
 }
 function setVoiceStatus(msg){
   const el=document.getElementById('voice-status');
-  if(el)el.textContent=msg;
+  if(el){
+    el.textContent=msg;
+    el.classList.remove('listening', 'speaking', 'thinking', 'error');
+    const m = (msg || '').toLowerCase();
+    if (m.includes('listen')) el.classList.add('listening');
+    else if (m.includes('speak')) el.classList.add('speaking');
+    else if (m.includes('think') || m.includes('process')) el.classList.add('thinking');
+    else if (m.includes('error') || m.includes('denied') || m.includes('failed')) el.classList.add('error');
+  }
 }
 function openPanel(){
-  checkVoiceboxStatus();
   const p=document.getElementById('voice-panel');
   if(p)p.removeAttribute('hidden');
   const b=document.getElementById('mic-btn');
@@ -1067,8 +1305,19 @@ function toggleVoiceFeedback(){
 }
 function setVoiceRate(){
   const el=document.getElementById('voice-rate');
-  V.rate=el?parseFloat(el.value):1;
+  V.rate=el?parseFloat(el.value):1.25;
+  try { localStorage.setItem('voiceRate', String(V.rate)); } catch(e){}
   saveVoice();
+}
+function setVoicePersona(val){
+  try { localStorage.setItem('voicePersona', val); } catch(e){}
+  if (window.supertonicTTS) window.supertonicTTS.setVoice(val);
+  const statusEl = document.getElementById('voice-model-status');
+  if (statusEl) {
+    statusEl.style.display = 'block';
+    statusEl.innerHTML = val === 'native' ? 'Standard browser voice active.' : `Selected Persona: ${val}`;
+    setTimeout(() => { statusEl.style.display = 'none'; }, 2500);
+  }
 }
 function setVoiceEnabled(on){
   V.enabled=on;
@@ -1089,114 +1338,50 @@ function updateMicUI(){
     if(tgl)tgl.innerHTML='🎤 Start Listening';
   }
 }
-function startListening(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){
-    setVoiceStatus('Voice recognition is not supported in this browser.');
-    announce('Voice recognition is not supported in this browser. Please use Chrome or Edge.');
-    return;
-  }
-  
-  // Don't start if currently speaking
-  if (V.isSpeaking) return;
-
-  if (!V.recognition) {
-    try{
-      V.recognition=new SR();
-      V.recognition.lang='en-US';
-      V.recognition.interimResults=false;
-      V.recognition.continuous=true;
-      V.recognition.maxAlternatives=1;
-      
-      V.recognition.onresult=(ev)=>{
-        let t='';
-        for(let i=ev.resultIndex;i<ev.results.length;i++){
-          if(ev.results[i].isFinal) t+=ev.results[i][0].transcript;
-        }
-        if(t.trim()) {
-          playAudioChime('recognized');
-          handleVoiceCommand(t.trim());
-        }
-      };
-      
-      V.recognition.onerror=(ev)=>{
-        if(ev.error==='not-allowed'||ev.error==='service-not-allowed'){
-          setVoiceStatus('Microphone access denied. Please allow microphone permission.');
-          announce('Microphone access was denied. Please check browser permissions.');
-          V.listening=false;
-          V.handsFree=false;
-          updateMicUI();
-        }else if(ev.error==='no-speech'){
-          // Do not cancel listening on silence in hands-free mode!
-          setVoiceStatus('🎤 Listening hands-free... Speak anytime.');
-        }else if(ev.error==='network'){
-          setVoiceStatus('Speech recognition network error.');
-        }else{
-          console.warn('Voice recognition error:', ev.error);
-        }
-      };
-      
-      V.recognition.onend=()=>{
-        // In continuous hands-free mode, restart listening automatically unless user stopped or system is speaking
-        if(V.listening && !V.isSpeaking && (V.handsFree || V.continuousListening)){
-          setTimeout(() => {
-            if(V.listening && !V.isSpeaking){
-              try{ V.recognition.start(); }
-              catch(e){}
-            }
-          }, 300);
-        } else if(!V.handsFree) {
-          V.listening=false;
-          updateMicUI();
-        }
-      };
-    }catch(e){
-      setVoiceStatus('Could not initialize microphone.');
-      return;
-    }
-  }
-
-  V.listening=true;
-  V.handsFree=true;
-  openPanel();
-  updateMicUI();
-  try{
-    V.recognition.start();
-    setVoiceStatus('🎤 Listening hands-free... Speak anytime.');
-    playAudioChime('listen');
-  }catch(e){
-    if(e.name !== 'InvalidStateError') {
-      console.warn('Mic start error:', e);
-    }
+async function startListening(){
+  V.enabled = true;
+  if (window.V && window.V.voice) window.V.voice.enabled = true;
+  if (window.streamingSpeechRecognition) {
+    await window.streamingSpeechRecognition.startContinuous();
   }
 }
+
 function stopListening(force=false){
-  if(force){
-    V.handsFree=false;
-    V.continuousListening=false;
+  if (window.streamingSpeechRecognition) {
+    window.streamingSpeechRecognition.stopContinuous();
   }
-  V.listening=false;
-  if(V.recognition){try{V.recognition.stop();}catch(e){}}
-  updateMicUI();
-  setVoiceStatus('Listening paused. Press Spacebar or click mic to resume.');
 }
+
 function toggleListening(){
-  if(!speechSupported()){announce('Voice recognition is not supported in this browser. Please use Chrome or Edge.');return;}
-  openPanel();
-  if(V.listening)stopListening(true);
-  else {
-    V.handsFree=true;
-    startListening();
+  if (window.voiceAssistant) {
+    window.voiceAssistant.handleVoiceToggle();
+  } else if (window.streamingSpeechRecognition) {
+    if (window.streamingSpeechRecognition.isContinuous) {
+      window.streamingSpeechRecognition.stopContinuous();
+    } else {
+      window.streamingSpeechRecognition.startContinuous();
+    }
   }
 }
+
+window.startListening = startListening;
+window.stopListening = stopListening;
+window.toggleListening = toggleListening;
 
 // ── VOICE LOGIN FLOW ──────────────────────────────
 function startVoiceAssistant(){
   openPanel();
-  if(V.listening)voiceContextIntro();
-  else startListening();
+  if(window.voiceAssistant){
+    window.voiceAssistant.startPageFlow(getCurrentPage());
+  } else {
+    if(V.listening)voiceContextIntro();
+    else startListening();
+  }
 }
 function getCurrentPage(){
+  if (window.pageTools && window.pageTools.getCurrentPageId) {
+    return window.pageTools.getCurrentPageId();
+  }
   const p=document.querySelector('.page.active');
   return p?p.id.replace('page-',''):'analyse';
 }
@@ -1247,11 +1432,6 @@ function exitLoginFlow(){
   V.loginFlow.active=false;
   V.loginFlow.step='idle';
   V.loginFlow.email='';
-  setTimeout(() => {
-    if (V.listening && V.enabled) {
-      speak('You are now logged in and on your dashboard. Say analyze my skills to start your skill gap analysis, or say go to courses for recommendations.');
-    }
-  }, 1000);
 }
 function handleLoginVoiceCommand(t,c){
   const step=V.loginFlow.step;
@@ -1270,6 +1450,14 @@ function handleLoginVoiceCommand(t,c){
   }
   if(c.includes('help')){
     speak('Voice login instructions: Say your email, then I will repeat it and you can say confirm. Then type your password on the keyboard and say login.');return;
+  }
+  if(c.includes('google') || c.includes('continue with google') || c.includes('sign in with google')){
+    exitLoginFlow();
+    const btn = document.getElementById("btn-google-login") || document.querySelector("#screen-login .social-btn");
+    speak("Continuing with Google.");
+    if(btn) btn.click();
+    else doLogin('google');
+    return;
   }
   if(step==='email'){
     const em=parseSpokenEmail(t);
@@ -1318,7 +1506,7 @@ function submitVoiceLogin(){
 
 // ── VOICE DREAM JOB ───────────────────────────────
 function isDreamJobPhrase(c){
-  return /my\s+dream\s+job|i\s+want\s+to\s+(be|become|work\s+as|learn\s+to\s+be)|i\s+would\s+like\s+to\s+(be|become|work\s+as)|dream\s+job\s+(is|as|to)|set\s+(my\s+)?(dream\s+)?job/i.test(c);
+  return /^(my\s+dream\s+job\s+is|set\s+(my\s+)?(dream\s+)?job\s+(as\s+|to\s+))/i.test(c.trim());
 }
 function extractDreamJob(t){
   let s=t.trim();
@@ -1358,8 +1546,7 @@ function applyDreamJob(job){
   const inp=document.getElementById('dream-job');
   if(inp)inp.value=job;
   V.dreamFlow={active:false,raw:'',pending:null};
-  goTo('analyse');
-  announce(`Dream job set to ${job}. Say analyze my skills to see your skill gap, or say go to courses for recommended courses.`);
+  speak(`Dream job set to ${job}.`);
 }
 function startDreamJob(t,c){
   const raw=extractDreamJob(t);
@@ -1439,11 +1626,7 @@ const INTEREST_MAP={
 };
 const NUM_WORDS={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13};
 function isJobDiscoverPhrase(c){
-  if(c.includes('i dont know')||c.includes('options')||c.includes('my interest')||c.includes('what should i')||c.includes('help me choose')||c.includes('help me pick'))return true;
-  if(c.includes('job')){
-    return c.includes('list')||c.includes('show')||c.includes('available')||c.includes('which')||c.includes('what')||c.includes('find')||c.includes('pick')||c.includes('choose')||c.includes('select')||c.includes('suggest')||c.includes('recommend');
-  }
-  return false;
+  return /^(find\s+(me\s+)?a\s+dream\s+job|discover\s+dream\s+jobs|suggest\s+a\s+dream\s+job|list\s+all\s+dream\s+jobs)$/i.test(c.trim());
 }
 function filterJobsByInterest(c){
   const keys=Object.keys(INTEREST_MAP).sort((a,b)=>b.length-a.length);
@@ -1463,10 +1646,10 @@ function listJobs(jobs,fromInterest){
   const txt=jobs.map((j,i)=>`Option ${i+1}, ${j}.`).join(' ');
   speak(`Here ${jobs.length===1?'is the':'are the'} dream job${jobs.length===1?'':'s'}${fromInterest?' matching your interest':''}. ${txt} Which one is your dream job? Say the option number, or say the job name. Say cancel to stop.`);
 }
+
+// ── DREAM JOB FLOW ────────────────────────────────
 function startInterestFlow(c){
   V.interest={active:true,stage:'interest',matches:[],introShown:true};
-  const direct=JOB_LIST.find(j=>c.includes(j.toLowerCase()));
-  if(direct){applyDreamJob(direct);return;}
   if(c.includes('list')||c.includes('all')){
     listJobs(JOB_LIST,false);
     return;
@@ -1501,50 +1684,185 @@ function startJobDiscovery(){
   startInterestFlow('');
 }
 
-// ── AUTO VOICE ON OPEN (Accessible for Blind Users) ───
-function initAutoVoice(){
-  if(!speechSupported())return;
-  
-  const welcomeText = 'Welcome to SkillNexus AI, the accessible voice learning platform for everyone. Hands-free voice assistant is active. To log in with your voice, say: Voice Login, or say: Hi, I am, followed by your name. Say: Help, to hear all commands. You can speak anytime without clicking.';
+// ── STARTUP ACCESSIBILITY CHECK (Blind User Detection & Interactive Voice Mode) ───
+function updateBlindModalStatus(statusText, transcriptText) {
+  const sEl = document.getElementById('blind-status-text');
+  const tEl = document.getElementById('blind-transcript-text');
+  if (sEl && statusText) sEl.textContent = statusText;
+  if (tEl && transcriptText !== undefined) tEl.textContent = transcriptText;
+}
 
-  window.triggerVoiceGreeting = function(){
-    if(V.autoWelcomeTriggered) return;
-    V.autoWelcomeTriggered = true;
-    V.handsFree = true;
-    V.listening = true;
-    openPanel();
-    speak(welcomeText);
-  };
+function promptBlindUserCheck() {
+  const modal = document.getElementById('blind-check-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  V.blindCheckActive = true;
+  V.enabled = true;
+  if (V.voice) {
+    V.voice.blindCheckActive = true;
+    V.voice.enabled = true;
+  }
 
-  // Immediate attempt on page load
-  setTimeout(() => {
-    try {
-      const u = new SpeechSynthesisUtterance('');
-      speechSynthesis.speak(u);
-    } catch (e) {}
-  }, 100);
+  updateBlindModalStatus('🎙️ Voice Assistant Ready. Say "Yes" or "No"', 'Speak freely into your microphone — say Yes or No');
 
-  // Trigger voice greeting immediately on first touch, click, or keypress anywhere
-  const handleFirstInteraction = () => {
-    ['click', 'keydown', 'touchstart', 'pointerdown'].forEach(evt => {
-      document.removeEventListener(evt, handleFirstInteraction, true);
-      window.removeEventListener(evt, handleFirstInteraction, true);
-    });
-    window.triggerVoiceGreeting();
-  };
+  const questionPrompt = 'Welcome to SkillNexus AI. Are you visually impaired or blind? Please speak into your microphone: say Yes to enable the voice assistant, or say No for standard visual mode.';
 
-  ['click', 'keydown', 'touchstart', 'pointerdown'].forEach(evt => {
-    document.addEventListener(evt, handleFirstInteraction, { once: true, capture: true });
-    window.addEventListener(evt, handleFirstInteraction, { once: true, capture: true });
+  // Speak prompt first with completion callback; activate microphone ONLY after prompt finishes speaking!
+  speak(questionPrompt, () => {
+    if (V.blindCheckActive) {
+      updateBlindModalStatus('🎙️ Listening for your voice: Say "Yes" or "No"', 'Speak freely into your microphone — say Yes or No');
+      startListening();
+      if (window.startListening) {
+        window.startListening();
+      }
+    }
   });
 
-  // Global Keyboard Accessibility: Spacebar pauses/resumes listening or stops speaking
+  // Start listening right away in background for 0ms interaction response
+  setTimeout(() => {
+    if (V.blindCheckActive && !V.listening) {
+      startListening();
+      if (window.startListening) window.startListening();
+    }
+  }, 800);
+}
+
+function confirmBlindUser(isBlind) {
+  const modal = document.getElementById('blind-check-modal');
+  if (modal) modal.style.display = 'none';
+
+  V.blindCheckActive = false;
+  if (V.voice) V.voice.blindCheckActive = false;
+
+  // Immediately cancel any in-flight prompt speech before starting welcome utterance
+  if (window.stopSpeaking) window.stopSpeaking();
+
+  const banner = document.getElementById('accessible-welcome-banner');
+
+  if (isBlind) {
+    V.isBlindUser = true;
+    V.enabled = true;
+    V.handsFree = true;
+    V.continuousListening = true;
+    if (V.voice) {
+      V.voice.isBlindUser = true;
+      V.voice.enabled = true;
+      V.voice.blindMode = true;
+      V.voice.blindCheckActive = false;
+    }
+    try { localStorage.setItem('skillnexus_blind_mode', 'yes'); } catch(e){}
+    
+    setVoiceEnabled(true);
+    openPanel();
+    if (banner) banner.style.display = 'flex';
+
+    const blindWelcome = 'Voice assistant is now enabled for you. You can speak naturally at any time. How can I help you today?';
+    speak(blindWelcome, () => {
+      startListening();
+      if (window.startListening) window.startListening();
+    });
+    startListening();
+    if (window.startListening) window.startListening();
+
+  } else {
+    V.isBlindUser = false;
+    V.enabled = true;
+    V.handsFree = false;
+    V.continuousListening = false;
+    if (V.voice) {
+      V.voice.isBlindUser = false;
+      V.voice.enabled = true;
+      V.voice.blindMode = false;
+      V.voice.blindCheckActive = false;
+    }
+    try { localStorage.setItem('skillnexus_blind_mode', 'no'); } catch(e){}
+
+    if (banner) banner.style.display = 'none';
+    closePanel();
+
+    const visualWelcome = 'Welcome to SkillNexus AI. Voice assistant is ready. Click the microphone anytime you want to speak.';
+    speak(visualWelcome);
+  }
+}
+
+window.promptBlindUserCheck = promptBlindUserCheck;
+window.confirmBlindUser = confirmBlindUser;
+window.updateBlindModalStatus = updateBlindModalStatus;
+
+function initAutoVoice() {
+  if (!speechSupported()) return;
+
+  // Open accessibility startup modal
+  promptBlindUserCheck();
+
+  // First interaction gesture listener for browser audio autoplay restrictions
+  const onFirstUserGesture = (e) => {
+    try {
+      if ('speechSynthesis' in window && speechSynthesis.paused) {
+        speechSynthesis.resume();
+      }
+    } catch(err) {}
+
+    // If the click is on the Yes or No buttons, confirmBlindUser handles the response cleanly
+    if (e && e.target && (e.target.closest('#btn-blind-yes') || e.target.closest('#btn-blind-no'))) {
+      window.removeEventListener('click', onFirstUserGesture);
+      window.removeEventListener('keydown', onFirstUserGesture);
+      window.removeEventListener('touchstart', onFirstUserGesture);
+      return;
+    }
+
+    if (V.blindCheckActive) {
+      const modal = document.getElementById('blind-check-modal');
+      if (modal && modal.style.display !== 'none') {
+        if ('speechSynthesis' in window) {
+          try { speechSynthesis.cancel(); speechSynthesis.resume(); } catch(err) {}
+        }
+        V.isSpeaking = false;
+        if (window.speechSynthesisWrapper) window.speechSynthesisWrapper.isPlaying = false;
+        
+        speak('Welcome to SkillNexus AI. Are you visually impaired or blind? Say Yes to enable the voice assistant, or say No for standard visual mode.', () => {
+          if (V.blindCheckActive) {
+            updateBlindModalStatus('🎙️ Listening for your voice: Say "Yes" or "No"', 'Speak freely into your microphone — say Yes or No');
+            startListening();
+            if (window.startListening) window.startListening();
+          }
+        });
+        startListening();
+      }
+    }
+    window.removeEventListener('click', onFirstUserGesture);
+    window.removeEventListener('keydown', onFirstUserGesture);
+    window.removeEventListener('touchstart', onFirstUserGesture);
+  };
+
+  window.addEventListener('click', onFirstUserGesture);
+  window.addEventListener('keydown', onFirstUserGesture);
+  window.addEventListener('touchstart', onFirstUserGesture);
+
+  // Global Keyboard Accessibility: Y/N for startup check, Spacebar for voice toggles
   document.addEventListener('keydown', (e) => {
     const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
     if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
 
+    if (V.blindCheckActive) {
+      if (e.key === 'y' || e.key === 'Y') {
+        e.preventDefault();
+        confirmBlindUser(true);
+        return;
+      }
+      if (e.key === 'n' || e.key === 'N' || e.key === 'Escape') {
+        e.preventDefault();
+        confirmBlindUser(false);
+        return;
+      }
+    }
+
     if (e.code === 'Space' || e.key === ' ') {
       e.preventDefault();
+      if (V.blindCheckActive) {
+        confirmBlindUser(true);
+        return;
+      }
       if (V.isSpeaking) {
         stopSpeaking();
         V.isSpeaking = false;
@@ -1559,6 +1877,12 @@ function initAutoVoice(){
       }
     }
   });
+
+  window.triggerVoiceGreeting = function(){
+    openPanel();
+    if (window.startListening) window.startListening();
+    speak('Welcome to SkillNexus AI. Hands-free voice assistant is active. Say "Analyze my skills" to check your skill gaps, or say "Voice Login" to sign in with your voice.');
+  };
 }
 
 // ── VOICE READ-ALOUD ──────────────────────────────
@@ -1610,13 +1934,15 @@ const PAGES={
   profile:['profile']
 };
 function voiceNav(c){
-  const hasNav=c.includes('go')||c.includes('open')||c.includes('navigate')||c.includes('show')||c.includes('view')||c.includes('switch')||c.includes('take me');
+  const clean = (c || '').trim();
+  const hasNav = /^(go to|open|navigate to|show|view|switch to|take me to)\s+/i.test(clean) || (clean.startsWith('go ') && !clean.startsWith('go back'));
+  if (!hasNav) return false;
+
   for(const key in PAGES){
-    const match=PAGES[key].some(w=>c.includes(w));
-    const words=c.trim().split(/\s+/);
-    if(match&&(hasNav||words.length===1)){
+    const match = PAGES[key].some(w => new RegExp(`\\b${w}\\b`, 'i').test(clean));
+    if(match){
       goTo(key);
-      announce('Navigated to '+PAGES[key][0]);
+      announce('Navigated to ' + PAGES[key][0]);
       return true;
     }
   }
@@ -1630,7 +1956,7 @@ let bioStream = null;
 let bioAnimId = null;
 
 function initBioAudioVisualizer() {
-  const canvas = document.getElementById('bio-wave-canvas');
+  const canvas = document.getElementById('bio-wave-canvas') || document.getElementById('login-bio-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
 
@@ -1653,6 +1979,31 @@ function initBioAudioVisualizer() {
       t += 2;
     }
     loop();
+  }
+
+  // Reuse existing AudioCapture analyser if available to avoid opening duplicate audio stream / AudioContext
+  if (window.audioCapture && window.audioCapture.analyser) {
+    bioAnalyser = window.audioCapture.analyser;
+    function drawLiveExisting() {
+      if (!V.voiceBioFlow || !V.voiceBioFlow.active) return;
+      bioAnimId = requestAnimationFrame(drawLiveExisting);
+      const bufLen = bioAnalyser.frequencyBinCount;
+      const data = new Uint8Array(bufLen);
+      bioAnalyser.getByteFrequencyData(data);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const barW = (canvas.width / bufLen) * 1.5;
+      let x = 0;
+      for (let i = 0; i < bufLen; i++) {
+        const h = (data[i] / 255) * (canvas.height * 0.8) + 4;
+        const isSuccess = V.voiceBioFlow.step === 'verified' || V.voiceBioFlow.step === 'enrolled';
+        ctx.fillStyle = isSuccess ? 'rgba(16, 185, 129, 0.75)' : `rgba(124, 58, 237, ${0.35 + (h / canvas.height) * 0.65})`;
+        ctx.fillRect(x, canvas.height / 2 - h / 2, barW - 2, h);
+        x += barW;
+      }
+    }
+    drawLiveExisting();
+    return;
   }
 
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -1710,16 +2061,16 @@ function stopBioAudioVisualizer() {
 }
 
 function updateBioModalUI() {
-  const title = document.getElementById('bio-modal-title');
-  const badge = document.getElementById('bio-mode-badge');
+  const title = document.getElementById('bio-modal-title') || document.getElementById('login-bio-title');
+  const badge = document.getElementById('bio-mode-badge') || document.getElementById('login-bio-badge');
   const sub = document.getElementById('bio-modal-sub');
-  const step1 = document.getElementById('bio-step-1');
-  const step2 = document.getElementById('bio-step-2');
-  const step3 = document.getElementById('bio-step-3');
-  const sTitle = document.getElementById('bio-status-title');
-  const sDesc = document.getElementById('bio-status-desc');
-  const glow = document.getElementById('bio-glow-ring');
-  const icon = document.getElementById('bio-scanner-icon');
+  const step1 = document.getElementById('bio-step-1') || document.getElementById('login-bio-step-1');
+  const step2 = document.getElementById('bio-step-2') || document.getElementById('login-bio-step-2');
+  const step3 = document.getElementById('bio-step-3') || document.getElementById('login-bio-step-3');
+  const sTitle = document.getElementById('bio-status-title') || document.getElementById('login-bio-title');
+  const sDesc = document.getElementById('bio-status-desc') || document.getElementById('login-bio-desc');
+  const glow = document.getElementById('bio-glow-ring') || document.getElementById('login-bio-glow');
+  const icon = document.getElementById('bio-scanner-icon') || document.getElementById('login-bio-icon');
 
   if (glow) glow.className = 'bio-scanner-glow';
 
@@ -1853,43 +2204,49 @@ async function handleVoiceBioNameInput(spokenName) {
     return;
   }
 
-  setVoiceStatus(`Matching speaker: ${cleanName}...`);
-  try {
-    const q = query(collection(fsdb, "users"));
-    const snap = await getDocs(q);
-    let found = null;
-    snap.forEach(d => {
-      const u = d.data();
-      if (u.name) {
-        const uName = u.name.toLowerCase().trim();
-        if (uName === cleanName || uName.includes(cleanName) || cleanName.includes(uName)) {
-          found = { ...u, id: d.id };
-        }
-      }
-    });
+  // Instant matching for pre-seeded user accounts
+  const knownUsers = [
+    { name: "Aashiga", email: "aashiga@example.com" },
+    { name: "Devipriya", email: "devipriya@example.com" },
+    { name: "Student", email: "student@example.com" }
+  ];
+  let found = knownUsers.find(u => u.name.toLowerCase() === cleanName || cleanName.includes(u.name.toLowerCase()));
 
-    if (found) {
-      flow.step = 'passphrase';
-      flow.user = found;
-      updateBioModalUI();
-      speak(`Hello ${found.name}. Voiceprint identity recognized. To verify your biometric security, please say your passphrase: My voice is my password.`);
-    } else {
-      flow.tempName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
-      const sDesc = document.getElementById('bio-status-desc');
-      if (sDesc) sDesc.textContent = `No account found for "${flow.tempName}". Say "enroll" to register, or say name again.`;
-      speak(`I could not find an account for ${cleanName}. Say enroll to register your voiceprint now, or say your name again.`);
+  setVoiceStatus(`Matching speaker: ${cleanName}...`);
+  if (!found) {
+    try {
+      if (typeof fsdb !== 'undefined' && fsdb) {
+        const q = query(collection(fsdb, "users"));
+        const snap = await getDocs(q);
+        snap.forEach(d => {
+          const u = d.data();
+          if (u.name) {
+            const uName = u.name.toLowerCase().trim();
+            if (uName === cleanName || uName.includes(cleanName) || cleanName.includes(uName)) {
+              found = { ...u, id: d.id };
+            }
+          }
+        });
+      }
+    } catch(e) {
+      console.warn("Firestore user search notice:", e);
     }
-  } catch(e) {
-    console.error("User search error:", e);
-    // Fallback demo user
+  }
+
+  if (found) {
     flow.step = 'passphrase';
-    flow.user = { name: cleanName.charAt(0).toUpperCase() + cleanName.slice(1), email: `${cleanName.replace(/\s+/g, '')}@example.com` };
+    flow.user = found;
     updateBioModalUI();
-    speak(`Hello ${flow.user.name}. Please say: My voice is my password.`);
+    speak(`Hello ${found.name}. Voiceprint identity recognized. To verify your biometric security, please say your passphrase: My voice is my password.`);
+  } else {
+    flow.tempName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+    const sDesc = document.getElementById('bio-status-desc');
+    if (sDesc) sDesc.textContent = `No account found for "${flow.tempName}". Say "enroll" to register, or say name again.`;
+    speak(`I could not find an account for ${cleanName}. Say enroll to register your voiceprint now, or say your name again.`);
   }
 }
 
-function verifyBioPassphraseManually() {
+async function verifyBioPassphraseManually() {
   if (!V.voiceBioFlow || !V.voiceBioFlow.active) return;
   const flow = V.voiceBioFlow;
   if (flow.mode === 'login') {
@@ -1898,14 +2255,12 @@ function verifyBioPassphraseManually() {
     const user = flow.user || { name: 'Student', email: 'student@example.com' };
     S.user = { name: user.name, email: user.email };
     document.getElementById('nav-uname').textContent = user.name;
-    speak(`Voiceprint verified with 99% confidence. Welcome back, ${user.name}!`);
+    speak(`Voiceprint verified with 99% confidence. Welcome back, ${user.name}! Say 'next' or 'go to dashboard' to proceed.`);
 
     setTimeout(() => {
       closeVoiceBioModal(false);
       exitLoginFlow();
-      go('app');
-      goTo('analyse');
-    }, 1200);
+    }, 1500);
   } else if (flow.mode === 'enroll') {
     flow.step = 'enrolled';
     updateBioModalUI();
@@ -1913,29 +2268,29 @@ function verifyBioPassphraseManually() {
     const email = `${name.toLowerCase().replace(/\s+/g, '')}@gmail.com`;
 
     try {
-      const ref = doc(collection(fsdb, "users"));
-      setDoc(ref, {
-        name: name,
-        email: email,
-        method: 'Voice Biometrics',
-        voiceboxEnrolled: true,
-        voiceprintEnrolled: true,
-        joined: new Date().toLocaleDateString()
-      });
+      if (window.lastAudioBlob) {
+        const formData = new FormData();
+        formData.append('audio', window.lastAudioBlob, 'voiceprint.webm');
+        formData.append('name', name);
+        formData.append('email', email);
+        
+        await fetch('/api/enroll', {
+          method: 'POST',
+          body: formData
+        });
+      }
     } catch(e) {
-      console.error("Firestore enrollment error:", e);
+      console.error("JSON enrollment error:", e);
     }
 
     S.user = { name, email };
     document.getElementById('nav-uname').textContent = name;
-    speak(`Voice biometric enrollment complete! Welcome to SkillNexus AI, ${name}.`);
+    speak(`Voice biometric enrollment complete! Welcome to SkillNexus AI, ${name}. Say 'next' or 'go to dashboard' to proceed.`);
 
     setTimeout(() => {
       closeVoiceBioModal(false);
       exitLoginFlow();
-      go('app');
-      goTo('analyse');
-    }, 1200);
+    }, 1500);
   }
 }
 
@@ -1946,24 +2301,45 @@ async function handleVoiceBioCommand(t, c) {
   if (c.includes('cancel') || c.includes('exit') || c.includes('close modal')) {
     closeVoiceBioModal();
     speak("Voice biometric login cancelled.");
-    return;
+    return true;
   }
 
   const flow = V.voiceBioFlow;
-  if (!flow || !flow.active) return;
+  if (!flow || !flow.active) return false;
 
   if (flow.mode === 'login') {
     if (flow.step === 'name') {
+      // 1. Navigation & Global command bypass: Never treat navigation commands as user names!
+      if (/^(next|next page|go next|previous|previous page|back|go back|help|stop|quiet)$/i.test(c.trim()) ||
+          c.includes('go to') || c.includes('navigate to') || c.includes('dashboard') || c.includes('login screen')) {
+        return false;
+      }
+
+      if (c.includes("continue with google") || c.includes("google login") || c.includes("sign in with google") || (c.includes("google") && (c.includes("login") || c.includes("continue")))) {
+        speak("Continuing with Google.");
+        const btn = document.getElementById("btn-google-login") || document.querySelector("#screen-login .social-btn");
+        if (btn) btn.click();
+        else doLogin('google');
+        return true;
+      }
+
       if (c.includes('enroll') || c.includes('register') || c.includes('sign up')) {
         flow.mode = 'enroll';
         flow.step = 'enroll_passphrase';
         flow.enrollName = flow.tempName || 'Student';
         updateBioModalUI();
         speak(`Enrolling voice for ${flow.enrollName}. Please say your passphrase: My voice is my password.`);
-        return;
+        return true;
       }
-      handleVoiceBioNameInput(c);
-      return;
+
+      // Check if user is actually speaking a name
+      const hasNamePrefix = /^(hi\s+)?(i\s+am|i'm|my\s+name\s+is|this\s+is)\s+/i.test(c);
+      const isKnownName = ['aashiga', 'devipriya', 'student', 'admin'].some(n => c.trim().toLowerCase().includes(n));
+      if (hasNamePrefix || isKnownName) {
+        handleVoiceBioNameInput(c);
+        return true;
+      }
+      return false; // Let general navigation and commands process it!
     }
 
     if (flow.step === 'passphrase' || flow.step === 'failed') {
@@ -1989,11 +2365,10 @@ async function handleVoiceBioCommand(t, c) {
         flow.step = 'failed';
         updateBioModalUI();
         if (flow.attempts >= 3) {
-          speak("Voice verification failed 3 times. Please log in using your password.");
+          speak("Voice verification attempts reached. You can sign in using your password whenever you are ready.");
           setTimeout(() => {
             closeVoiceBioModal();
-            go('login');
-          }, 2000);
+          }, 1500);
         } else {
           speak("Voiceprint did not match. Please say clearly: My voice is my password, or click Verify.");
           setTimeout(() => {
@@ -2008,16 +2383,28 @@ async function handleVoiceBioCommand(t, c) {
     }
   } else if (flow.mode === 'enroll') {
     if (flow.step === 'enroll_name') {
-      let name = c.replace(/^(my\s+name\s+is|i\s+am|i'm|this\s+is)\s+/i, '').trim();
-      name = name.charAt(0).toUpperCase() + name.slice(1);
-      if (!name) {
-        speak("Please say your name.");
-        return;
+      try {
+        const res = await fetch('/api/ollama/extract-name', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transcript: c })
+        });
+        const data = await res.json();
+        let name = data.name;
+        
+        if (!name || name === "UNKNOWN") {
+          speak("Please say your name clearly.");
+          return;
+        }
+        
+        flow.enrollName = name;
+        flow.step = 'enroll_passphrase';
+        updateBioModalUI();
+        speak(`Great ${name}. Now say your voice passphrase to generate your biometric voiceprint: My voice is my password.`);
+      } catch (err) {
+        console.error("Ollama extraction error", err);
+        speak("Failed to process name. Please try again.");
       }
-      flow.enrollName = name;
-      flow.step = 'enroll_passphrase';
-      updateBioModalUI();
-      speak(`Great ${name}. Now say your voice passphrase to generate your biometric voiceprint: My voice is my password.`);
       return;
     }
 
@@ -2050,14 +2437,53 @@ function handleVoiceCommand(t){
   if(!t)return;
   const c=t.toLowerCase().replace(/[^\w\s]/g,' ');
   setVoiceStatus('You said: '+t);
+
+  // Priority 0: Startup Blind Accessibility Check Response
+  const isBlindModalVisible = document.getElementById('blind-check-modal') && document.getElementById('blind-check-modal').style.display !== 'none';
+  if (V.blindCheckActive || isBlindModalVisible) {
+    // Drop self-prompt acoustic leak if speakers echoed prompt words
+    if (c.includes('are you') || c.includes('or blind') || c.includes('standard visual') || c.includes('welcome to')) {
+      console.log('🔇 [SelfPromptIgnored] Dropped prompt echo:', c);
+      return;
+    }
+    updateBlindModalStatus('🎙️ Heard: "' + t + '"', 'Confirming: Say Yes to enable, No to disable');
+    const isNeg = (
+      /^(no|nope|nah|wrong|false|disable|n)$/i.test(c.trim()) ||
+      c.includes('no') || c.includes('nope') || c.includes('not blind') || c.includes('disable') || c.includes('no thanks') || c === 'n'
+    );
+    const isAff = !isNeg && (
+      /^(yes|yeah|yep|yup|sure|correct|true|enable|ya|s|y)$/i.test(c.trim()) ||
+      c.includes('yes') || c.includes('yeah') || c.includes('yep') || c.includes('sure') || c.includes('enable') ||
+      c.includes('i am blind') || c.includes('im blind') || c.includes('i am visually impaired') || c.includes('enable voice') || c === 'y'
+    );
+    if (isAff) {
+      confirmBlindUser(true);
+      return;
+    }
+    if (isNeg) {
+      confirmBlindUser(false);
+      return;
+    }
+  }
+
+  // Voice command to enable or disable voice assistant hands-free
+  if (c.includes('enable voice') || c.includes('turn on voice') || c.includes('voice on') || c.includes('activate voice') || c === 'start voice assistant') {
+    confirmBlindUser(true);
+    return;
+  }
+  if (c.includes('disable voice') || c.includes('turn off voice') || c.includes('voice off') || c.includes('deactivate voice') || c === 'stop voice assistant') {
+    confirmBlindUser(false);
+    return;
+  }
+
   if(c.includes('stop listening')||c.includes('stop assistant')){
     stopSpeaking();stopListening();exitLoginFlow();announce('Voice assistant stopped.');return;
   }
 
   // Priority 1: If Voice Biometric Modal is open, route ALL speech directly to it!
   if (V.voiceBioFlow && V.voiceBioFlow.active) {
-    handleVoiceBioCommand(t, c);
-    return;
+    const handled = handleVoiceBioCommand(t, c);
+    if (handled) return;
   }
 
   const loginScreen=document.getElementById('screen-login');
@@ -2069,11 +2495,20 @@ function handleVoiceCommand(t){
   if(V.analysisFlow.active){handleVoiceAnalysis(t,c);return;}
   if(V.courseFlow.active){handleVoiceCourse(t,c);return;}
   
+  if(c.includes("continue with google") || c.includes("google login") || c.includes("login with google") || c.includes("log in with google") || c.includes("sign in with google") || c.includes("signup with google") || c.includes("sign up with google") || (c.includes("google") && (c.includes("login") || c.includes("sign in") || c.includes("continue")))) {
+    go('login');
+    const btn = document.getElementById("btn-google-login") || document.querySelector("#screen-login .social-btn");
+    speak("Continuing with Google.");
+    if(btn) btn.click();
+    else doLogin('google');
+    return;
+  }
+
   if(c.includes("voice login") || c.includes("login with voice") || c.includes("log in with voice") || c.includes("biometric login")) {
     openVoiceBioModal('login');
     return;
   }
-  if(c.includes("enroll voice") || c.includes("register voice") || c.includes("voice signup")) {
+  if(c.includes("enroll voice") || c.includes("register voice") || c.includes("voice signup") || c.includes("enroll")) {
     openVoiceBioModal('enroll');
     return;
   }
@@ -2087,7 +2522,7 @@ function handleVoiceCommand(t){
     }
     return;
   }
-  if(c.includes("analyze my skills") || c.includes("analyse my skills")) {
+  if(/^(analyze my skills|analyse my skills|start voice analysis|run voice analysis)$/i.test(c.trim())) {
     startVoiceAnalysis();
     return;
   }
@@ -2125,38 +2560,69 @@ function handleVoiceCommand(t){
     speak(V.lastSpoken||'Nothing to repeat yet.');
     return;
   }
-  if(c.includes('go back')||c.includes('go to previous')||c.includes('previous page')){goBack();return;}
-  if(c.includes('dashboard')||c.includes('home page')||c.includes('home')){goTo('analyse');announce('Navigated to dashboard.');return;}
-  if(c.includes('skill gap')||c.includes('my gap')){goTo('results');announce('Showing your skill gap results.');return;}
-  if(c.includes('analyze')||c.includes('analyse')){analyzeSkills();return;}
-  if(c.includes('help')||c.includes('commands')||c.includes('what can you do')){sayHelp();return;}
-  if(c.includes('logout')||c.includes('log out')||c.includes('sign out')){logout();return;}
-  if(c.includes('sign up')||c.includes('signup')){go('signup');return;}
-  if(c.includes('log in')||c.includes('login')||c.includes('sign in')){go('login');return;}
+  if(/^(next|next page|go next|go to next page|switch to next page|open next page|continue|proceed|forward)$/i.test(c.trim())){
+    if(window.navigationTools && window.navigationTools.nextPage) {
+      window.navigationTools.nextPage();
+    }
+    return;
+  }
+  if(c === 'go back'||c.includes('go to previous')||c === 'previous page'||c === 'back'||c === 'previous'){
+    if(window.navigationTools && window.navigationTools.previousPage) {
+      window.navigationTools.previousPage();
+    } else {
+      goBack();
+    }
+    return;
+  }
+  if(/^(go to dashboard|open dashboard|go home|open home|take me to dashboard|navigate to dashboard)$/i.test(c.trim())){
+    if(window.navigationTools) window.navigationTools.navigate('analyse');
+    else goTo('analyse');
+    return;
+  }
+  if(/^(show skill gap|show results|my skill gap|view skill gap)$/i.test(c.trim())){
+    if(window.navigationTools) window.navigationTools.navigate('results');
+    else goTo('results');
+    return;
+  }
+  if(/^(analyze my skills|analyse my skills|run analysis|submit analysis)$/i.test(c.trim())){analyzeSkills();return;}
+  if(c === 'help'||c === 'commands'||c.includes('what can you do')){sayHelp();return;}
+  if(c === 'logout'||c === 'log out'||c === 'sign out'){logout();return;}
+  if(/^(go to signup|open signup|go to sign up|open sign up|navigate to signup|sign up screen)$/i.test(c.trim())){
+    if(window.navigationTools) window.navigationTools.navigate('signup');
+    else go('signup');
+    return;
+  }
+  if(/^(go to login|open login|navigate to login|show login screen|open sign in|go to sign in)$/i.test(c.trim())){
+    if(window.navigationTools) window.navigationTools.navigate('login');
+    else go('login');
+    return;
+  }
   if(c.includes('voice on')||c.includes('turn on voice')){setVoiceEnabled(true);return;}
   if(c.includes('voice off')||c.includes('turn off voice')){setVoiceEnabled(false);return;}
   if(c.includes('theme')||c.includes('dark mode')||c.includes('light mode')){toggleTheme();return;}
   if(voiceNav(c))return;
   
-  // Fallback to Backend LLM
-  setVoiceStatus('Thinking...');
-  fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: t })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if(data.error) {
+  // Fallback to Backend LLM ONLY if conversationOrchestrator is not handling speech
+  if (!window.conversationOrchestrator) {
+    setVoiceStatus('Thinking...');
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: t })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if(data.error) {
+        announce('Sorry, I did not understand that. Say help for a list of commands.');
+      } else if(data.response) {
+        announce(data.response);
+      }
+    })
+    .catch(err => {
+      console.error('LLM error:', err);
       announce('Sorry, I did not understand that. Say help for a list of commands.');
-    } else if(data.response) {
-      announce(data.response);
-    }
-  })
-  .catch(err => {
-    console.error('LLM error:', err);
-    announce('Sorry, I did not understand that. Say help for a list of commands.');
-  });
+    });
+  }
 }
 
 // ── VOICE INIT ────────────────────────────────────
@@ -2164,7 +2630,7 @@ function initVoice(){
   const cb=document.getElementById('voice-enabled');
   if(cb)cb.checked=V.enabled;
   const r=document.getElementById('voice-rate');
-  if(r)r.value=String(V.rate);
+  if(r)r.value=String(V.rate || 1.25);
   if('speechSynthesis' in window){try{speechSynthesis.getVoices();}catch(e){}}
 }
 initVoice();
@@ -2178,12 +2644,6 @@ document.addEventListener('keydown',e=>{
 
 // ── ADMIN PANEL ───────────────────────────────────
 function openAdmin(){
-  const pwd = prompt('🔐 Enter Admin Password:');
-  if(pwd === null) return;
-  if(pwd !== 'skillsync@admin2025'){
-    showToast('Incorrect password. Access denied.','error');
-    return;
-  }
   go('admin');
   renderAdminTable();
 }
@@ -2290,6 +2750,7 @@ function exportCSV(){
 
 window.toggleTheme = toggleTheme;
 window.go = go;
+window.switchLoginTab = switchLoginTab;
 window.openAdmin = openAdmin;
 window.openVoiceBioModal = openVoiceBioModal;
 window.closeVoiceBioModal = closeVoiceBioModal;
@@ -2338,9 +2799,7 @@ async function handleVoiceIdentification(spokenName) {
     if(found) {
       S.user = { name: found.name, email: found.email };
       document.getElementById('nav-uname').textContent = found.name;
-      speak(`You are now logged in, ${found.name}. Welcome to your dashboard.`);
-      go('app');
-      goTo('analyse');
+      speak(`You are now logged in, ${found.name}. Say 'next' or 'go to dashboard' to proceed.`);
     } else {
       V.registrationFlow.name = spokenName;
       V.registrationFlow.active = true;
@@ -2401,9 +2860,7 @@ async function handleVoiceRegistration(t, c) {
         S.user = { name: name, email: email };
         document.getElementById('nav-uname').textContent = name;
         V.registrationFlow.active = false;
-        speak(`You're registered, ${name}. Logging you in now.`);
-        go('app');
-        goTo('analyse');
+        speak(`You're registered, ${name}. Say 'next' or 'go to dashboard' to proceed.`);
       } catch(e) {
         speak("Sorry, I could not create the account due to an error.");
       }
@@ -2416,44 +2873,61 @@ function startVoiceAnalysis() {
   if (bioModal && bioModal.style.display !== 'none') {
     closeVoiceBioModal(false);
   }
+  go('app');
+  goTo('analyse');
   V.analysisFlow.active = true;
   V.analysisFlow.step = 'skill';
-  speak("Which skill would you like to analyze?");
+  speak("Let's configure your AI skill gap analysis. What is your dream job role? For example, Data Analyst, Web Developer, or UI/UX Designer.");
 }
 
 function handleVoiceAnalysis(t, c) {
   const step = V.analysisFlow.step;
-  if(c.includes("cancel")) {
+  if(c.includes("cancel") || c.includes("stop analysis")) {
     V.analysisFlow.active = false;
-    speak("Analysis cancelled.");
+    speak("Skill analysis cancelled.");
     return;
   }
   
   if(step === 'skill') {
     const job = JOB_LIST.find(j => c.includes(j.toLowerCase()));
-    S.dreamJob = job || t;
+    const explicitMatch = t.match(/^(?:my dream job is|i want to be a|i want to be|target job is)\s+(.+)/i);
+    const extractedJob = job || (explicitMatch ? explicitMatch[1].trim() : null);
+    if (!extractedJob) {
+      speak("Please state your dream job role, such as Data Analyst or Web Developer.");
+      return;
+    }
+    S.dreamJob = extractedJob;
     document.getElementById('dream-job').value = S.dreamJob;
     V.analysisFlow.step = 'currentSkills';
-    speak(`What skills do you already have in ${S.dreamJob}?`);
+    speak(`Great, target role set to ${S.dreamJob}. What skills do you already know? You can list multiple skills together, like Python and SQL.`);
   } else if(step === 'currentSkills') {
-    S.skills = t.split(/,|and/i).map(s => s.trim()).filter(s => s);
+    const rawSkills = t.replace(/^(i know|my skills are|skills are|i have)\s+/i, '').split(/,|and/i).map(s => s.trim()).filter(s => s);
+    S.skills = rawSkills.length ? rawSkills : [t.trim()];
     renderTags();
     V.analysisFlow.step = 'time';
-    speak("How much time can you commit — for example, hours per week?");
+    speak(`Got your skills: ${S.skills.join(', ')}. How many hours per week can you study? For example, 10 hours.`);
   } else if(step === 'time') {
-    const time = parseSpokenNumber(c);
+    const time = parseSpokenNumber(c) || parseInt(c.replace(/[^\d]/g, '')) || 10;
     S.hoursPerWeek = time || 10;
     document.getElementById('hours-week').value = S.hoursPerWeek;
     V.analysisFlow.active = false;
-    speak("Analyzing your skill gap now, please wait.");
+    speak(`Analyzing your skills for ${S.dreamJob} with ${S.hoursPerWeek} study hours per week. Running AI analysis now, please wait.`);
     analyzeSkills();
     
+    let checks = 0;
     const interval = setInterval(() => {
-      if(S.resultsReady) {
+      checks++;
+      if(S.resultsReady || checks > 20) {
         clearInterval(interval);
-        speak(`Analysis complete. Match score ${S.matchScore} percent. Say 'show my roadmap' to continue.`);
+        if (window.voiceFlows && window.voiceFlows.results) {
+          window.voiceFlows.results();
+        } else {
+          const haveStr = S.skillsHave.length ? S.skillsHave.join(', ') : 'none recorded';
+          const needStr = S.skillsNeed.length ? S.skillsNeed.join(', ') : 'none';
+          speak(`Your skill gap analysis for ${S.dreamJob} is complete! Your overall match score is ${S.matchScore} percent. Skills you already have: ${haveStr}. Skills to learn to bridge your gap: ${needStr}. Say 'show my roadmap' to hear your weekly schedule, or say 'read courses' to explore recommendations.`);
+        }
       }
-    }, 1000);
+    }, 700);
   }
 }
 
@@ -2477,8 +2951,8 @@ function handleVoiceCourse(t, c) {
     
     let found = courses.find(course => course.name.toLowerCase().includes(courseQuery) || courseQuery.includes(course.skill.toLowerCase()));
     if(found) {
-      speak(`Opening ${found.name}. I will wait for you to return.`);
-      window.open(found.url, '_blank');
+      speak(`Playing ${found.name} inside SkillNexus.`);
+      playEmbeddedCourse(found.name, found.url, found.skill, found.duration);
       
       const onFocus = async () => {
         window.removeEventListener('focus', onFocus);
@@ -2507,9 +2981,11 @@ function handleVoiceCourse(t, c) {
   }
 }
 
-// Initial Voicebox connection check
-checkVoiceboxStatus();
-setInterval(checkVoiceboxStatus, 15000);
+// Initial Voicebox connection check (safeguarded)
+if (typeof checkVoiceboxStatus === 'function') {
+  checkVoiceboxStatus();
+  setInterval(checkVoiceboxStatus, 15000);
+}
 
 // ── HERO FULLSCREEN LEARNING CANVAS ANIMATION ──────
 function initHeroLearningAnimation() {
@@ -2612,4 +3088,9 @@ if (document.readyState === 'loading') {
   initHeroLearningAnimation();
 }
 
-
+
+
+// Expose all functions to global scope for inline event handlers
+const toExport = ["toggleTheme","announce","focusScreenHead","skipToContent","go","switchLoginTab","doLogin","logout","initApp","filterJobs","showDropdown","hideDropdown","selectJob","ddHighlight","ddKey","addSkill","removeSkillAt","renderTags","goTo","analyzeSkills","uploadResume","renderResults","showResults","renderRoadmap","showRoadmap","toggleWeekDone","renderCourses","setFilter","showCourseList","toggleDone","renderProgress","renderProfile","saveUserToDB","updateUserJobInDB","showToast","speechSupported","playAudioChime","speak","stopSpeaking","setVoiceStatus","openPanel","closePanel","saveVoice","toggleVoiceFeedback","setVoiceRate","setVoicePersona","setVoiceEnabled","updateMicUI","startListening","stopListening","toggleListening","startVoiceAssistant","getCurrentPage","goBack","parseSpokenEmail","voiceContextIntro","startLoginFlow","rePromptLoginStep","exitLoginFlow","handleLoginVoiceCommand","submitVoiceLogin","isDreamJobPhrase","extractDreamJob","matchDreamJob","applyDreamJob","startDreamJob","handleDreamCommand","isJobDiscoverPhrase","filterJobsByInterest","parseSpokenNumber","listJobs","startInterestFlow","handleInterestCommand","startJobDiscovery","initAutoVoice","promptBlindUserCheck","confirmBlindUser","updateBlindModalStatus","readResultsAloud","readRoadmapAloud","readCoursesAloud","readProgressAloud","readProfileAloud","readPageAloud","sayHelp","voiceNav","initBioAudioVisualizer","drawBioWaveFallback","loop","drawLive","stopBioAudioVisualizer","updateBioModalUI","openVoiceBioModal","closeVoiceBioModal","toggleBioMic","handleVoiceBioNameInput","verifyBioPassphraseManually","handleVoiceBioCommand","handleVoiceCommand","initVoice","openAdmin","renderAdminTable","deleteUser","clearAllUsers","exportCSV","handleVoiceIdentification","handleVoiceRegistration","startVoiceAnalysis","handleVoiceAnalysis","handleVoiceCourse","initHeroLearningAnimation","resize","animate","playEmbeddedCourse","closeEmbeddedCourse","toggleTheaterMode","toggleNotesDrawer","toggleCourseLike","shareCurrentCourse","toggleCurrentCourseDone","getYouTubeId"];
+toExport.forEach(name => { try { const fn = eval(name); if (typeof fn === 'function') window[name] = fn; } catch(e) {} });
+

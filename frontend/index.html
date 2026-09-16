@@ -22,13 +22,48 @@
   <a class="skip-link" href="#main-content" onclick="skipToContent(event)">Skip to main content</a>
   <div id="sr-announce" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
 
-  <!-- Accessible Voice Welcome Banner (Blind Navigation) -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <!--  STARTUP ACCESSIBILITY CHECK (BLIND USER DETECTION)  -->
+  <!-- ══════════════════════════════════════════════════ -->
+  <div id="blind-check-modal" class="blind-modal-overlay" role="dialog" aria-modal="true"
+    aria-labelledby="blind-check-title" aria-describedby="blind-check-desc">
+    <div class="blind-modal-box">
+      <div class="blind-badge">♿ Accessibility & Voice Mode</div>
+      <div class="blind-mic-anim" aria-hidden="true">🎙️</div>
+      <h2 id="blind-check-title" class="blind-modal-title">Welcome to SkillNexus AI</h2>
+      <p id="blind-check-question" class="blind-modal-sub">Are you visually impaired or blind?</p>
+      <p id="blind-check-desc" class="blind-modal-desc">
+        <strong>Speak into your microphone:</strong> Say <strong>"Yes"</strong> to enable hands-free voice navigation and interactive skill analysis aloud, or say <strong>"No"</strong> to disable the voice assistant. <em>No clicking required!</em>
+      </p>
+
+      <div class="blind-status-card" role="status" aria-live="assertive">
+        <div class="status-text" id="blind-status-text">🎙️ Listening to your voice... Say "Yes" or "No"</div>
+        <div class="transcript-text" id="blind-transcript-text">Your microphone is active. Speak your answer freely.</div>
+      </div>
+
+      <div class="blind-actions-row">
+        <button type="button" id="btn-blind-yes" class="blind-btn-yes" onclick="confirmBlindUser(true)"
+          aria-label="Yes, I am blind or visually impaired. Enable Voice Assistant.">
+          <span>🎙️ Say "Yes" (Enable Voice)</span>
+        </button>
+        <button type="button" id="btn-blind-no" class="blind-btn-no" onclick="confirmBlindUser(false)"
+          aria-label="No, I am not blind. Standard visual mode.">
+          <span>👁️ Say "No" (Disable Voice)</span>
+        </button>
+      </div>
+
+      <div class="blind-shortcuts-hint">
+        Voice or Keyboard: Speak "Yes" / "No" &bull; Press <kbd>Y</kbd> / <kbd>Space</kbd> for Yes &bull; Press <kbd>N</kbd> / <kbd>Esc</kbd> for No
+      </div>
+    </div>
+  </div>
+
+  <!-- Accessible Voice Status / Notice Banner -->
   <div id="accessible-welcome-banner" class="accessible-welcome-banner" role="region"
-    aria-label="Hands-free Voice Mode for Blind Users">
-    <span>♿ <strong>Hands-Free Voice Mode Active:</strong> Say <em>"Voice Login"</em> or press <strong>Spacebar</strong>
-      anytime to speak without clicking.</span>
+    aria-label="Hands-free Voice Mode Status" style="display:none;">
+    <span id="accessible-banner-text">♿ <strong>Voice Assistant Active:</strong> Say <em>"Analyze my skills"</em> or press <strong>Spacebar</strong> anytime to speak.</span>
     <button type="button" id="start-voice-guidance-btn" onclick="triggerVoiceGreeting()" class="btn btn-sm btn-p"
-      aria-label="Start Voice Guidance">🎙️ Start Voice Guidance</button>
+      aria-label="Start Voice Guidance">🎙️ Voice Guidance</button>
   </div>
 
   <!-- ══════════════════════════════════════════════════ -->
@@ -51,9 +86,6 @@
           aria-label="Start voice assistant">🎙 Voice</button>
         <button class="btn btn-o btn-sm" onclick="go('login')">Login</button>
         <button class="btn btn-p btn-sm" onclick="go('signup')">Get Started</button>
-        <button class="btn btn-sm" onclick="openAdmin()"
-          style="background:rgba(0,0,0,.08);border:1.5px solid rgba(0,0,0,.15);color:var(--text);font-size:.72rem;padding:5px 10px;border-radius:8px"
-          title="Admin Panel" aria-label="Open admin panel">🔐</button>
       </div>
     </nav>
     <div class="hero-content"
@@ -225,43 +257,101 @@
   <!--  SCREEN: LOGIN                                     -->
   <!-- ══════════════════════════════════════════════════ -->
   <div class="screen" id="screen-login" style="align-items:center;justify-content:center">
-    <div style="width:100%;max-width:440px;padding:24px 20px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
+    <div style="width:100%;max-width:480px;padding:24px 18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
         <div class="brand">✨ SkillNexus AI</div>
         <div style="display:flex;gap:8px">
-          <button class="theme-btn" onclick="toggleTheme()">👁</button>
+          <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle Theme">👁</button>
           <button class="btn btn-o btn-sm" onclick="go('landing')">← Back</button>
         </div>
       </div>
-      <div class="card a1">
-        <h2 style="font-size:1.7rem;margin-bottom:4px">Welcome Back 👋</h2>
-        <p style="color:var(--muted);font-size:.9rem;margin-bottom:24px">Sign in to your SkillNexus account</p>
-        <button class="social-btn" onclick="doLogin('google')">
-          <img src="https://www.svgrepo.com/show/475656/google-color.svg" width="20" alt="G"> Continue with Google
-        </button>
-        <div class="divider">or continue with email</div>
-        <div class="form-group"><label for="login-email">Email Address</label><input type="email" id="login-email"
-            placeholder="you@example.com" required></div>
-        <div class="form-group"><label for="login-pass">Password</label><input type="password" id="login-pass"
-            placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin('email')" required></div>
-        <button class="btn btn-p" style="width:100%;padding:13px;font-size:1rem;justify-content:center;margin-top:4px"
-          onclick="doLogin('email')">Sign In →</button>
-        <div style="position:relative;text-align:center;margin:14px 0 10px;">
-          <span
-            style="background:var(--card);padding:0 10px;font-size:0.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Or
-            Authenticate with Voice</span>
+      <div class="card a1 bio-login-card">
+        <h2 style="font-size:1.65rem;margin-bottom:4px;display:flex;align-items:center;gap:8px;">Sign In 🔐</h2>
+        <p style="color:var(--muted);font-size:.88rem;margin-bottom:18px">Authenticate using your voiceprint or credentials</p>
+
+        <!-- Primary Mode Switcher Tabs -->
+        <div class="bio-tabs" role="tablist">
+          <button type="button" class="bio-tab-btn active" id="tab-btn-bio" onclick="switchLoginTab('bio')" role="tab" aria-selected="true">
+            <span>🎙️</span> <span>Voice Biometric</span> <span class="bio-primary-tag">PRIMARY</span>
+          </button>
+          <button type="button" class="bio-tab-btn" id="tab-btn-pass" onclick="switchLoginTab('pass')" role="tab" aria-selected="false">
+            <span>🔑</span> <span>Password / Google</span>
+          </button>
         </div>
-        <button type="button" class="btn"
-          style="width:100%;padding:12px;font-size:0.95rem;justify-content:center;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;border:none;border-radius:12px;font-weight:700;box-shadow:0 4px 16px rgba(124,58,237,0.35);cursor:pointer;display:flex;align-items:center;gap:8px;transition:transform .15s,box-shadow .15s;"
-          onclick="openVoiceBioModal('login')" id="btn-voice-bio-login"
-          onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">
-          <span>🎙️</span> <span>Voice Biometric Login (Only My Voice)</span>
-        </button>
-        <button type="button" class="btn btn-o"
-          style="width:100%;justify-content:center;margin-top:8px;font-size:0.85rem;" onclick="startVoiceAssistant()"
-          title="Log in step by step by dictating your email and typing password">
-          🗣️ Dictate Email by Voice
-        </button>
+
+        <!-- ════ VIEW 1: VOICE BIOMETRIC LOGIN (PRIMARY) ════ -->
+        <div id="login-bio-view" class="bio-view-content" style="display:block;">
+          <!-- Cybernetic Holographic Biometric Scanner -->
+          <div class="bio-hero-scanner">
+            <div class="bio-radar-sweep"></div>
+            <div class="bio-scanner-glow" id="login-bio-glow"></div>
+            <div class="bio-hero-icon" id="login-bio-icon">🎙️</div>
+            <canvas id="login-bio-canvas" width="360" height="90"></canvas>
+          </div>
+
+          <!-- 3-Step Verification Tracker -->
+          <div class="bio-steps-row" style="margin: 12px 0 14px;">
+            <div class="bio-step-pill active" id="login-bio-step-1">1. Identify Name</div>
+            <div class="bio-step-pill" id="login-bio-step-2">2. Passphrase</div>
+            <div class="bio-step-pill" id="login-bio-step-3">3. Verified</div>
+          </div>
+
+          <!-- Real-Time Voice Feedback Console -->
+          <div class="bio-console-card">
+            <div class="bio-console-badge" id="login-bio-badge">● LISTENING FOR VOICEPRINT</div>
+            <div id="login-bio-title" class="bio-console-title">Listening for your name...</div>
+            <div id="login-bio-desc" class="bio-console-desc">Say: <strong>"Hi, I am [Your Name]"</strong> (e.g. "Hi, I am Aashiga")</div>
+            <div id="login-bio-transcript" class="bio-console-transcript"></div>
+          </div>
+
+          <!-- Quick One-Click Name Suggestions -->
+          <div class="bio-quick-chips">
+            <span style="font-size:0.75rem;color:var(--muted);font-weight:600;">Fast select:</span>
+            <button type="button" class="bio-chip" onclick="handleVoiceBioNameInput('Aashiga')">👤 Aashiga</button>
+            <button type="button" class="bio-chip" onclick="handleVoiceBioNameInput('Devipriya')">👤 Devipriya</button>
+            <button type="button" class="bio-chip" onclick="handleVoiceBioNameInput('Student')">👤 Student</button>
+          </div>
+
+          <!-- Action Controls -->
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button type="button" class="btn btn-o" style="flex:1;justify-content:center;font-size:0.86rem;padding:11px;" id="login-bio-restart-btn" onclick="toggleBioMic()">
+              🔄 Restart Mic
+            </button>
+            <button type="button" class="btn btn-p" style="flex:1;justify-content:center;font-size:0.86rem;padding:11px;background:linear-gradient(135deg,#7c3aed,#2563eb);" id="btn-voice-bio-login" onclick="verifyBioPassphraseManually()">
+              ✅ Verify & Log In
+            </button>
+          </div>
+
+          <div style="text-align:center;margin-top:14px;">
+            <button type="button" style="background:none;border:none;color:var(--muted);font-size:0.82rem;cursor:pointer;text-decoration:underline;" onclick="switchLoginTab('pass')">
+              Prefer typing? Click to switch to password login
+            </button>
+          </div>
+        </div>
+
+        <!-- ════ VIEW 2: PASSWORD / GOOGLE LOGIN (SECONDARY) ════ -->
+        <div id="login-pass-view" class="bio-view-content" style="display:none;">
+          <button id="btn-google-login" class="social-btn" onclick="doLogin('google')">
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" width="20" alt="G"> Continue with Google
+          </button>
+          <div class="divider">or continue with email</div>
+          <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <input type="email" id="login-email" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label for="login-pass">Password</label>
+            <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin('email')" required>
+          </div>
+          <button class="btn btn-p" style="width:100%;padding:13px;font-size:1rem;justify-content:center;margin-top:4px"
+            onclick="doLogin('email')">Sign In with Password →</button>
+          <div style="text-align:center;margin-top:16px;">
+            <button type="button" style="background:none;border:none;color:#7c3aed;font-size:0.84rem;font-weight:700;cursor:pointer;" onclick="switchLoginTab('bio')">
+              ← Switch back to Voice Biometric Login (Primary)
+            </button>
+          </div>
+        </div>
+
         <p style="text-align:center;margin-top:18px;font-size:.88rem;color:var(--muted)">Don't have an account? <a
             href="#" style="color:#7c3aed;font-weight:700;text-decoration:none" onclick="go('signup')">Sign Up</a></p>
       </div>
@@ -283,7 +373,7 @@
       <div class="card a1">
         <h2 style="font-size:1.7rem;margin-bottom:4px">Create Account ✨</h2>
         <p style="color:var(--muted);font-size:.9rem;margin-bottom:24px">Join SkillNexus AI — it's completely free!</p>
-        <button class="social-btn" onclick="doLogin('google')">
+        <button id="btn-google-signup" class="social-btn" onclick="doLogin('google')">
           <img src="https://www.svgrepo.com/show/475656/google-color.svg" width="20" alt="G"> Sign up with Google
         </button>
         <div class="divider">or sign up with email</div>
@@ -478,6 +568,81 @@
         <div class="spinner"></div><br>Loading courses…
       </div>
       <div id="c-content" style="display:none">
+        <!-- ── YOUTUBE CLONE PLAYER (IN-WEBSITE) ── -->
+        <div id="yt-clone-player" class="yt-theater-card" style="display:none;">
+          <div class="yt-theater-header">
+            <div class="yt-header-left">
+              <span class="yt-badge-live">▶️ NOW PLAYING</span>
+              <span id="yt-clone-title" class="yt-video-title">Course Title</span>
+            </div>
+            <div class="yt-header-actions">
+              <button type="button" class="yt-btn-icon" onclick="toggleTheaterMode()" title="Toggle Theater Mode" aria-label="Toggle Theater Mode">⛶</button>
+              <button type="button" class="yt-btn-icon yt-btn-close" onclick="closeEmbeddedCourse()" title="Close Player" aria-label="Close Player">✕</button>
+            </div>
+          </div>
+
+          <!-- Responsive 16:9 Video Frame -->
+          <div class="yt-video-wrapper" id="yt-video-frame-container">
+            <iframe id="yt-embedded-iframe" 
+                    src="" 
+                    title="YouTube Course Player" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen>
+            </iframe>
+          </div>
+
+          <!-- Video Metadata Bar -->
+          <div class="yt-meta-bar">
+            <div class="yt-meta-left">
+              <div class="yt-channel-info">
+                <div class="yt-channel-avatar" id="yt-channel-avatar">🎓</div>
+                <div>
+                  <div class="yt-channel-name" id="yt-channel-name">SkillNexus Academy <span class="yt-verified-badge" title="Verified Course">✓</span></div>
+                  <div class="yt-skill-tags">
+                    <span class="badge b-free" id="yt-type-badge">FREE</span>
+                    <span class="badge b-yt" id="yt-platform-badge">YouTube</span>
+                    <span class="yt-duration" id="yt-duration-badge">• Duration</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="yt-actions-right">
+              <button type="button" class="yt-action-btn" id="yt-like-btn" onclick="toggleCourseLike()">
+                <span id="yt-like-icon">👍</span> <span id="yt-like-count">1.4K</span>
+              </button>
+              <button type="button" class="yt-action-btn yt-complete-btn" id="yt-complete-btn" onclick="toggleCurrentCourseDone()">
+                <span id="yt-complete-icon">✅</span> <span id="yt-complete-text">Mark as Completed</span>
+              </button>
+              <button type="button" class="yt-action-btn" onclick="toggleNotesDrawer()" title="Take Lecture Notes">
+                📝 Notes
+              </button>
+              <button type="button" class="yt-action-btn" onclick="shareCurrentCourse()" title="Share Course">
+                🔗 Share
+              </button>
+              <a id="yt-external-link" href="#" target="_blank" rel="noopener" class="yt-action-btn" title="Open directly on YouTube (optional)">
+                ↗ YouTube
+              </a>
+            </div>
+          </div>
+
+          <!-- Interactive Lecture Notes Drawer -->
+          <div class="yt-notes-drawer" id="yt-notes-drawer" style="display:none;">
+            <div class="yt-notes-header">
+              <span>📝 Lecture Notes (<span id="yt-notes-course-name">Current Course</span>)</span>
+              <span class="yt-notes-saved-indicator" id="yt-notes-saved">Auto-saved ✓</span>
+            </div>
+            <textarea id="yt-notes-textarea" class="yt-notes-input" placeholder="Type key points, code snippets, or ideas here while watching... Your notes are automatically saved."></textarea>
+          </div>
+
+          <!-- Up Next Playlist Carousel -->
+          <div class="yt-up-next-section">
+            <div class="yt-up-next-title">⏭️ Up Next in Your Career Roadmap</div>
+            <div class="yt-up-next-list" id="yt-up-next-list"></div>
+          </div>
+        </div>
+
         <div class="skill-filter" id="skill-filter"></div>
         <div id="c-list"></div>
       </div>
@@ -603,10 +768,6 @@
       </div>
       <div id="voice-status" class="voice-status" role="status" aria-live="polite">Press Start Listening and say a
         command.</div>
-      <div id="voicebox-status-badge"
-        style="display:none;font-size:0.75rem;padding:6px 10px;border-radius:6px;background:rgba(16,185,129,0.1);color:#10b981;border:1px solid rgba(16,185,129,0.25);margin-bottom:10px;text-align:center;line-height:1.3;">
-        🟢 Voicebox Connected: <b>127.0.0.1:17493</b>
-      </div>
       <button type="button" id="mic-toggle" class="btn btn-p"
         style="width:100%;justify-content:center;margin-bottom:8px" onclick="toggleListening()">🎤 Start
         Listening</button>
@@ -623,11 +784,32 @@
       <div class="voice-opt">
         <label for="voice-rate">Speech speed</label>
         <select id="voice-rate" onchange="setVoiceRate()">
-          <option value="0.7">Slow</option>
-          <option value="1" selected>Normal</option>
-          <option value="1.3">Fast</option>
+          <option value="1">Normal (1.0×)</option>
+          <option value="1.25" selected>Fast & Natural (1.25×)</option>
+          <option value="1.45">Very Fast (1.45×)</option>
         </select>
       </div>
+      <div class="voice-opt">
+        <label for="voice-persona">AI Voice Persona</label>
+        <select id="voice-persona" onchange="setVoicePersona(this.value)">
+          <optgroup label="Standard Voices">
+            <option value="native" selected>Browser Native Voice (Instant)</option>
+          </optgroup>
+          <optgroup label="Neural AI Voices (WebGPU / WASM)">
+            <option value="F1">F1 - Friendly Female</option>
+            <option value="F2">F2 - Professional Female</option>
+            <option value="F3">F3 - Energetic Female</option>
+            <option value="F4">F4 - Warm Female</option>
+            <option value="F5">F5 - Calm Female</option>
+            <option value="M1">M1 - Clear Male</option>
+            <option value="M2">M2 - Authoritative Male</option>
+            <option value="M3">M3 - Warm Male</option>
+            <option value="M4">M4 - Dynamic Male</option>
+            <option value="M5">M5 - Deep Male</option>
+          </optgroup>
+        </select>
+      </div>
+      <div id="voice-model-status" style="font-size:0.75rem;color:var(--p,#7c3aed);margin-top:6px;font-weight:600;display:none;"></div>
     </div>
     <button type="button" id="mic-btn" class="mic-fab" onclick="toggleListening()"
       aria-label="Voice assistant, start listening" aria-expanded="false" aria-controls="voice-panel"
@@ -690,7 +872,31 @@
     </div>
   </div>
 
-  <script type="module" src="app.js"></script>
+  <script src="voice/voiceState.js"></script>
+  <script src="voice/context/conversationContext.js"></script>
+  <script src="voice/orchestrator/memoryStore.js"></script>
+  <script src="voice/audio/audioCapture.js"></script>
+  <script src="voice/audio/sttWorkerManager.js"></script>
+  <script src="voice/audio/turnDetector.js"></script>
+  <script src="voice/tools/pageTools.js"></script>
+  <script src="voice/tools/navigationTools.js"></script>
+  <script src="voice/tools/formTools.js"></script>
+  <script src="voice/tools/authTools.js"></script>
+  <script src="voice/tools/youtubeTools.js"></script>
+  <script src="voice/tools/toolRegistry.js"></script>
+  <script src="voice/llm/llmProvider.js"></script>
+  <script src="voice/orchestrator/responsePlanner.js"></script>
+  <script src="voice/supertonicTTS.js"></script>
+  <script src="voice/speechSynthesis.js"></script>
+  <script src="voice/orchestrator/conversationOrchestrator.js"></script>
+  <script src="voice/speechRecognition.js"></script>
+  <script src="voice/voiceCommands.js"></script>
+  <script src="voice/voiceAssistant.js"></script>
+  <script src="voice/flows/loginFlow.js"></script>
+  <script src="voice/flows/analyseFlow.js"></script>
+  <script src="voice/flows/resultsFlow.js"></script>
+  <script src="voice/flows/guidedWorkflow.js"></script>
+  <script type="module" src="app.js?v=1"></script>
 </body>
 
 </html>
